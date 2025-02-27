@@ -1,5 +1,5 @@
 # Miravelle
-This project is a 3D generation project.
+Miravelle → Miracle(기적) + Belle(아름다움)
 
 ## 프로젝트 개요
 
