@@ -33,8 +33,8 @@ Meshy AI 기반 3D 생성 플랫폼
 ```
 
 ## 규칙
-[코드 규칙](Docs/docs/code_convention.md)
-[커밋 규칙](Docs/docs/commit_rule.md)
+[코드 규칙](Docs/docs/code_convention.md)       
+[커밋 규칙](Docs/docs/commit_rule.md)     
 
 ## 데이터 흐름
 1. 사용자가 Django 웹 애플리케이션에 로그인
