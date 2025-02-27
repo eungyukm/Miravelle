@@ -25,11 +25,12 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Dev
-# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net",
+    "127.0.0.1",
+    "localhost",
+]
 
-# Cloud
-ALLOWED_HOSTS = ["miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net"]
 
 
 # Application definition
