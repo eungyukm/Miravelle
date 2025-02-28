@@ -21,7 +21,6 @@ Meshy AI 기반 3D 생성 플랫폼
 |----------------|------|
 | 백엔드         | Django, Django REST Framework |
 | 데이터베이스   | PostgreSQL |
-| 메시징 큐      | Celery + Redis (비동기 작업 처리) |
 | 프론트엔드     | React (선택사항) |
 | 3D 뷰어       | Three.js (WebGL) |
 | API 연동      | Meshy AI API |
