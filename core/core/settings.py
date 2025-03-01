@@ -34,22 +34,6 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication', # JWT 인증
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  # 인증된 사용자만 접근 가능
-    ],
-}
-from datetime import timedelta
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-}
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -59,10 +43,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
-    # DRF
-    "rest_framework",
-    "rest_framework_simplejwt",
     
     # Create app list
     "users",
