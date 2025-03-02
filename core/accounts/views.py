@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
-from django.contrib.auth import login as auth_login
+from django.urls import reverse
+
 
 # 회원가입
 def Register(request):
@@ -8,8 +9,9 @@ def Register(request):
         form = CustomUserCreationForm(request.POST)   # 바인딩 form
         if form.is_valid():
             user = form.save()
-            auth_login(request, user) # 로그인 하기
-            return redirect("main")
+            # 로그인 페이지 URL을 가져옴
+            login_url = reverse('login')
+            return redirect(login_url)
     else:
         form = CustomUserCreationForm()
     context = {'form': form}
