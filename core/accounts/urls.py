@@ -4,5 +4,5 @@ from . import views
 
 
 urlpatterns = [
-    path("register/", views.RegisterAPIView.as_views(), name="register" ) # 회원 가입
+    path("register/", views.Register, name="register" ) # 회원 가입
 ]
