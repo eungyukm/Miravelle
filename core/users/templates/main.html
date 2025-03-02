@@ -3,11 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BW</title>
+    <title>Image Gallery</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- As a link  Header-->
+    <nav class="navbar navbar-light bg-transparent border-bottom"> <!--배경색 투명, 선으로만 보이게끔-->
+        <div class="container-fluid">
+            <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>BW</strong></a>
+            <div class="d-flex">
+                <a class="btn btn-dark btn-sm me-2" href="{% url "users:login" %}">Log In</a>
+                <a class="btn btn-dark btn-sm" href="{% url "accounts:register" %}">Register</a>
+            </div>
+        </div>
+    </nav>
+
     <style>
         body {
             font-family: sans-serif;
+            background-color:rgb(255, 255, 255);
+            min-height: 100vh; /* 최소 높이를 100vh로 설정하여 화면 전체를 채우도록 함 */
+
+        }
+        .wrapper {
+            display: flex;
+            flex-direction: column; /* 내용을 세로로 정렬 */
+            min-height: 100vh; /* 최소 높이를 100vh로 설정하여 body와 동일하게 함 */
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        .card-img-top {
+            background-color: #f0f0f0; /* Placeholder gray color */
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 16px;
+            text-align: center;
+        }
+        .col-md-9 {
+            margin: 0 auto; /* 좌우 마진을 auto로 설정 */
+            float: none;    /* float 속성 제거 */
+        }
+        .btn-custom {
+            background-color: white;
+            color: black;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-custom:hover {
+            background-color: #e9ecef; /* Light gray on hover */
+        }
+
+        .btn-custom i {
+            margin-left: 5px; /* Space between text and icon */
         }
         .placeholder-image {
             width: 100%;
@@ -26,112 +90,84 @@
             height: 50%;
         }
 
-        .card {
-            margin-bottom: 20px; /* Added spacing between cards */
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <h1>BW</h1>
-            <div>
-                <button class="btn btn-secondary btn-sm">Sign in</button>
-                <button class="btn btn-dark btn-sm">Register</button>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-3">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-light border d-flex justify-content-between align-items-center">
-                        Created from text
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-plus" viewBox="0 0 16 16">
-                            <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
-                            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-                          </svg>
-                    </button>
-                    <button class="btn btn-light border d-flex justify-content-between align-items-center">
-                        Created from image
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-plus" viewBox="0 0 16 16">
-                            <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
-                            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-                          </svg>
-                    </button>
+    <div class="wrapper">
+        <nav class="navbar navbar-light bg-transparent">
+            </nav>
+        <div class="container-fluid">
+            <div class="row">
+                <!--Left button-->
+                <div class="col-md-3">
+                    <button class="btn-custom w-100">Created from text <i class="fas fa-file"></i></button>
+                    <button class="btn-custom w-100">Created from image <i class="fas fa-image"></i></button>
                 </div>
-            </div>
-
-            <div class="col-md-9">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="placeholder-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M1.5 1a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H1.5zm13 1H2v12h12V2zm-3 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1h1.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5h3z"/>
-                                </svg>
+        
+                <!-- Image Gallery (Right) -->
+                <div class="col-md-9">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-img-top">
+                                    <i class="fas fa-image fa-5x" style="color: lightgray;"></i>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-title">Text</p>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <p class="card-text">Text</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-img-top">
+                                     <i class="fas fa-image fa-5x" style="color: lightgray;"></i>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-title">Text</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-img-top">
+                                     <i class="fas fa-image fa-5x" style="color: lightgray;"></i>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-title">Text</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="placeholder-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M1.5 1a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H1.5zm13 1H2v12h12V2zm-3 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1h1.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5h3z"/>
-                                </svg>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">Text</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="placeholder-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M1.5 1a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H1.5zm13 1H2v12h12V2zm-3 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1h1.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5h3z"/>
-                                </svg>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">Text</p>
+        
+                     <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-img-top">
+                                    <i class="fas fa-image fa-5x" style="color: lightgray;"></i>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-title">Text</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="placeholder-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M1.5 1a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H1.5zm13 1H2v12h12V2zm-3 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1h1.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5h3z"/>
-                                </svg>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">Text</p>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-img-top">
+                                     <i class="fas fa-image fa-5x" style="color: lightgray;"></i>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-title">Text</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="placeholder-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M1.5 1a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H1.5zm13 1H2v12h12V2zm-3 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1h1.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5h3z"/>
-                                </svg>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">Text</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="placeholder-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M1.5 1a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H1.5zm13 1H2v12h12V2zm-3 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1h1.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5h3z"/>
-                                </svg>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">Text</p>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-img-top">
+                                     <i class="fas fa-image fa-5x" style="color: lightgray;"></i>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-title">Text</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -139,7 +175,13 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!--Footer-->
+    <footer class="py-0 bg-transparent border-top fixed-bottom"> <!--배경은 투명, 선으로만-->
+        <div class="container">
+            <p class="m-3 text-center text-color: rgb(195, 193, 193)">@ 2025</p>
+        </div>
+    </footer>
 </body>
 </html>
