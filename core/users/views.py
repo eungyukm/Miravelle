@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required
 
 # 로그인
 def login(request):
@@ -17,3 +18,10 @@ def login(request):
         form = AuthenticationForm()
     context = {'form': form}
     return render(request, 'login.html', context)
+
+
+# 로그아웃
+@login_required
+def logout(request):
+    auth_logout(request)    # 로그아웃 하기
+    return redirect('main')
