@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     # Create app list
     "users",
     "accounts",
-    "assets",
+    "assets", # MY Assets
     
 ]
 
