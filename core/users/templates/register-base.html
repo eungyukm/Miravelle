@@ -8,6 +8,12 @@
     <title>Miravelle</title>
 </head>
 <body>
+    <!-- As a link  Header-->
+    <nav class="navbar navbar-light bg-transparent border-bottom">
+        <div class="container-fluid">
+            <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a>
+        </div>
+    </nav>
     {% block content %}
     {% endblock content %}
     <!--Footer-->
