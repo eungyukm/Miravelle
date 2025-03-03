@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!-- Bootstrap 클래스 설명
+
+1. 컨테이너 관련
+   - container : 반응형 고정 너비 컨테이너
+   - container-fluid : 화면 전체 너비 컨테이너
+
+2. 행(Row) 관련
+   - row : 가로 행을 만드는 클래스
+   - g-4 : grid gap(간격) 4단위
+
+3. 열(Column) 관련
+   - col : 자동 너비 열
+   - col-auto : 내용물 크기만큼 자동 조절
+   - col-12 : 12칸 전체 사용 (모바일)
+   - col-md-6 : 중간 화면에서 6칸 사용 (태블릿)
+   - col-lg-4 : 큰 화면에서 4칸 사용 (데스크톱)
+
+4. 정렬 관련
+   - d-flex : flexible box 레이아웃 사용
+   - justify-content-between : 양쪽 정렬
+   - align-items-center : 수직 가운데 정렬
+
+5. 여백 관련
+   - py-5 : 위아래 패딩 5단위
+   - mb-4 : 아래쪽 마진 4단위
+   - ms-3 : 왼쪽 마진 3단위
+-->
+
+{% block content %}
+<!-- 메인 컨테이너 -->
+<div class="container py-5">
+    <!-- 페이지 제목 섹션 -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="text-dark mb-0">My 3D Assets</h2>
+            <p class="text-muted">내가 생성한 3D 모델링 에셋 목록입니다.</p> <!-- 페이지 제목 섹션 -->
+        </div>
+        <!-- 새 에셋 생성 버튼 -->
+        <div class="col-auto">
+            <a href="#" class="btn btn-dark">Create New Asset</a>
+        </div>
+    </div>
+
+    <!-- 에셋 그리드 섹션 -->
+    <div class="row g-4">
+        {% for asset in assets %}
+        <!-- 각 에셋 카드 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <!-- 에셋 썸네일 영역 -->
+                <div class="card-img-top position-relative" style="height: 200px;">
+                    {% if asset.thumbnail %}
+                        <img src="{{ asset.thumbnail.url }}" 
+                             class="w-100 h-100 object-fit-cover" 
+                             alt="{{ asset.title }}">
+                    {% else %}
+                        <!-- 썸네일이 없을 경우 대체 이미지 -->
+                        <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                            <span class="text-muted">No Preview</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- 에셋 정보 영역 -->
+                <div class="card-body">
+                    <h5 class="card-title text-dark">{{ asset.title }}</h5> <!-- 제목 표시 -->
+                    <p class="card-text text-muted small mb-2"> <!-- 생성일 표시 -->
+                        생성일: {{ asset.created_at|date:"Y.m.d" }}
+                    </p>
+                    {% if asset.description %}
+                        <p class="card-text">{{ asset.description|truncatechars:100 }}</p> <!-- 설명 텍스트 최대 100자 제한 -->
+                    {% endif %}
+                </div>
+
+                <!-- 에셋 액션 버튼 영역 -->
+                <div class="card-footer bg-transparent border-0">
+                    <div class="d-flex justify-content-between align-items-center"> <!-- 카드 아래에 버튼 배치 -->
+                        <button class="btn btn-outline-dark btn-sm">상세보기</button>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-dark btn-sm">수정</button>
+                            <button class="btn btn-outline-danger btn-sm">삭제</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- 에셋이 없을 경우 표시될 메시지 -->
+        <div class="col-12 text-center py-5"> <!-- 컨테이너 안에서 가운데 정렬 -->
+            <div class="py-5"> <!-- 패딩 추가 -->
+                <h4 class="text-muted mb-4">아직 생성된 에셋이 없습니다</h4>
+                <p class="text-muted">상단의 'Create New Asset' 버튼을 클릭하여 새로운 3D 에셋을 생성해보세요.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
