@@ -10,7 +10,7 @@ def Register(request):
         if form.is_valid():
             user = form.save()
             # 로그인 페이지 URL을 가져옴
-            login_url = reverse('login')
+            login_url = reverse("users:login")
             return redirect(login_url)
     else:
         form = CustomUserCreationForm()
