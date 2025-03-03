@@ -15,8 +15,7 @@ def login(request):
         if form.is_valid():
             # Log the user in
             auth_login(request, form.get_user())   # 로그인 하기
-            next_url = request.GET.get("next")  # next 인자 제대로 가져오기
-            return redirect(next_url or "main")  # next가 없으면 main으로 리다이렉트
+            return redirect("users:main")
     
     else:    
         form = CustomAuthenticationForm()  # CustomAuthenticationForm 사용
