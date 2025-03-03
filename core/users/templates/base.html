@@ -12,7 +12,12 @@
     <!-- As a link  Header-->
     <nav class="navbar navbar-light bg-transparent border-bottom">
         <div class="container-fluid">
-            <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a>
+            <div class="d-flex align-items-center"> <!-- 컨테이너 안에서 가로 정렬 -->
+                <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a> <!-- 로고 클릭 시 메인 페이지로 이동 -->
+                {% if user.is_authenticated %} <!-- 로그인 상태일 때 -->
+                <a class="nav-link text-dark ms-3" href="{% url "assets:asset_list" %}">MY Assets</a> <!-- 에셋 리스트 페이지로 이동 -->
+                {% endif %} 
+            </div>
             <div class="d-flex">
                 {% if user.is_authenticated %}
                     <a class="btn btn-dark btn-sm me-2" href="{% url "users:logout" %}">Log Out</a>
