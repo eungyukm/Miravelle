@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Miravelle Register</title>
+</head>
+<body>
+    <!-- As a link  Header-->
+    <nav class="navbar navbar-light bg-transparent border-bottom">
+        <div class="container-fluid">
+            <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a>
+        </div>
+    </nav>
+    {% block content %}
+    {% endblock content %}
+    <!--Footer-->
+    <footer class="py-0 bg-transparent border-top"> <!--배경은 투명, 선으로만-->
+        <div class="container">
+            <p class="m-3 text-center text-color: rgb(195, 193, 193)">@ 2025 </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS-->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

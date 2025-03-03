@@ -25,13 +25,14 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# user 모델 선언
+AUTH_USER_MODEL = "accounts.User"
+
 ALLOWED_HOSTS = [
     "miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net",
     "127.0.0.1",
     "localhost",
 ]
-
-
 
 # Application definition
 
@@ -42,6 +43,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    
+    # Create app list
     "users",
     "accounts",
     "assets",
@@ -124,7 +127,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
