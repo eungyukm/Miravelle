@@ -27,4 +27,4 @@ def login(request):
 @login_required
 def logout(request):
     auth_logout(request)    # 로그아웃 하기
-    return redirect("main")
+    return redirect("users:main")
