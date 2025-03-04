@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 DEBUG = True
 
 # user 모델 선언
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "users.User"
 
 ALLOWED_HOSTS = [
     "miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net",
@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     
     # Create app list
     "users",
-    "accounts",
     "assets",
     
 ]
