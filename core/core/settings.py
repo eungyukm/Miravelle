@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "users",
     "accounts",
     "assets",
-    
+    "workspace",
 ]
 
 MIDDLEWARE = [
