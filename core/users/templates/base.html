@@ -23,7 +23,7 @@
                     <a class="btn btn-dark btn-sm me-2" href="{% url "users:logout" %}">Log Out</a>
                 {% else %}
                     <a class="btn btn-dark btn-sm me-2" href="{% url "users:login" %}">Log In</a>
-                    <a class="btn btn-dark btn-sm" href="{% url "accounts:register" %}">Register</a>
+                    <a class="btn btn-dark btn-sm" href="{% url "users:register" %}">Register</a>
                 {% endif %}
             </div>
         </div>
