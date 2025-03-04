@@ -6,9 +6,12 @@ cffi==1.17.1
 charset-normalizer==3.4.1
 cryptography==44.0.2
 Django==5.1.6
+dotenv==0.9.9
 idna==3.10
 isodate==0.7.2
+pillow==11.1.0
 pycparser==2.22
+python-dotenv==1.0.1
 requests==2.32.3
 six==1.17.0
 sqlparse==0.5.3
