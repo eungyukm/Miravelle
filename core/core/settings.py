@@ -45,10 +45,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     
     # Create app list
-    "users",
-    "assets",
-    "workspace",
+    "users", # 유저 관라 앱
+    "assets", # 유저가 생상한 모델을 볼 수 있는 공간 관리 앱
+    "workspace", # 작업 공간 앱
+    """추후 삭제할 app, model_storage"""
     "model_storage",
+    "articles", # 메인 화면에 있는 글 관리 앱
 ]
 
 MIDDLEWARE = [
