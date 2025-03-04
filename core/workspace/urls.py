@@ -7,7 +7,7 @@ from .views import (
     preview_mesh_page,
     refine_mesh
 )
-
+app_name = "workspace"
 urlpatterns = [
     path("create/", create_mesh_page, name="create_mesh_page"),
     path("create/api/", create_mesh, name="create_mesh"),
