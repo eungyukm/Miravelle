@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <title>Miravelle Register</title>
 </head>
 <body>
     <!-- As a link  Header-->
     <nav class="navbar navbar-light bg-transparent border-bottom">
         <div class="container-fluid">
-            <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a>
+            <div class="d-flex align-items-center"> <!-- d-flex : 가로 정렬, align-items-center : 컨테이너 안에서 수직 가운데 정렬 -->
+                <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a> <!-- navbar-brand : 로고 클릭 시 메인 페이지로 이동 -->
+            </div>
         </div>
     </nav>
     {% block content %}
@@ -24,8 +26,6 @@
     </footer>
 
     <!-- Bootstrap JS-->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
