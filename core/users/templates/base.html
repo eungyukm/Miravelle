@@ -16,6 +16,7 @@
                 <a class="navbar-brand text-dark" href="{% url "users:main" %}"><strong>Miravelle</strong></a> <!-- navbar-brand : 로고 클릭 시 메인 페이지로 이동 -->
                 {% if user.is_authenticated %} <!-- 로그인 상태일 때 -->
                 <a class="nav-link text-dark ms-3" href="{% url "assets:asset_list" %}">MY Assets</a> <!-- nav-link : 메뉴 링크, ms-3 : 왼쪽 마진 3단위,  MY Assets 페이지로 이동 -->
+                <a class="nav-link text-dark ms-3" href="{% url "workspace:create_mesh_page" %}">Workspace</a>
                 {% endif %} 
             </div>
             <div class="d-flex">
