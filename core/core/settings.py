@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "accounts",
     "assets",
     "workspace",
+    "model_storage",
 ]
 
 MIDDLEWARE = [
