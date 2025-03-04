@@ -3,8 +3,6 @@
 {% block content %}
 
 <div class="wrapper">
-    <nav class="navbar navbar-light bg-transparent">
-        </nav>
     <div class="container-fluid">
         <div class="row">
             <!--Left button-->
@@ -89,22 +87,11 @@
 </div>
 
 <style>
-    body {
-        font-family: sans-serif;
-        background-color:rgb(255, 255, 255);
-        min-height: 100vh; /* 최소 높이를 100vh로 설정하여 화면 전체를 채우도록 함 */
-
-    }
-    .wrapper {
-        display: flex;
-        flex-direction: column; /* 내용을 세로로 정렬 */
-        min-height: 100vh; /* 최소 높이를 100vh로 설정하여 body와 동일하게 함 */
-    }
-
     .container {
-        margin-top: 20px;
+        margin-top: 20px; 
     }
     .card {
+        margin-top: 15px;
         margin-bottom: 20px;
         padding: 10px;
     }
@@ -120,16 +107,14 @@
         font-size: 16px;
         text-align: left;
     }
-    .col-md-9 {
-        margin: 0 auto; /* 좌우 마진을 auto로 설정 */
-        float: none;    /* float 속성 제거 */
-    }
+    /* 왼쪽 버튼 설정*/
     .btn-custom {
         background-color: white;
         color: black;
         border: 1px solid #ced4da;
         border-radius: 5px;
-        margin-bottom: 5px;
+        margin-top: 15px;
+        margin-bottom: 0px;
         padding: 8px 12px;
         display: flex;
         justify-content: space-between;
