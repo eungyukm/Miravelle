@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Model Preview</h2>
+
+    <!-- 🔥 서버에서 전달된 값 확인 -->
+    <p><strong>Mesh ID:</strong> <span id="meshIdText">{{ mesh_id }}</span></p>
+
+    {% if thumbnail_url %}
+        <p>🔥 [DEBUG] 썸네일 URL: {{ thumbnail_url }}</p>
+        <img src="{{ thumbnail_url }}" alt="Mesh Preview" style="max-width: 100%; height: auto;">
+    {% else %}
+        <p>❌ [DEBUG] 썸네일 URL 없음</p>
+    {% endif %}
+
+    {% if video_url %}
+        <p>🔥 [DEBUG] 비디오 URL: {{ video_url }}</p>
+        <video controls style="width: 100%;">
+            <source src="{{ video_url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    {% else %}
+        <p>❌ [DEBUG] 비디오 URL 없음</p>
+    {% endif %}
+
+    <!-- 🔥 JavaScript에서 데이터를 다시 불러와서 적용 -->
+    <div id="previewSection">
+        <img id="previewImage" src="" alt="Mesh Preview" style="display: none; max-width: 100%; height: auto;">
+        <video id="previewVideo" controls style="width: 100%; display: none;">
+            <source id="videoSource" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <!-- 🔥 정제 버튼 -->
+    <button id="refineMeshBtn" class="btn btn-dark w-100"">Refine Mesh</button>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("🔥 [DEBUG] preview_mesh.html 로드됨!");
+
+        // ✅ Mesh ID 설정
+        const meshIdElement = document.getElementById("meshIdText");
+        const jobId = meshIdElement ? meshIdElement.textContent.trim() : null;
+
+        if (!jobId) {
+            alert("⚠️ 유효한 작업 ID가 없습니다.");
+            return;
+        }
+
+        function fetchMeshStatus() {
+            console.log("🔄 [DEBUG] 모델 상태 확인 중...");
+
+            fetch(`/workspace/${jobId}/preview/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("✅ [DEBUG] 모델 데이터 가져옴:", data);
+
+                        if (data.thumbnail_url) {
+                            document.getElementById("previewImage").src = data.thumbnail_url;
+                            document.getElementById("previewImage").style.display = "block";
+                        }
+
+                        if (data.video_url) {
+                            document.getElementById("videoSource").src = data.video_url;
+                            document.getElementById("previewVideo").style.display = "block";
+                            document.getElementById("previewVideo").load();
+                        }
+
+                        // ✅ 썸네일과 비디오가 있으면 반복 요청 중단
+                        if (data.thumbnail_url && data.video_url) {
+                            clearInterval(statusCheckInterval);
+                        }
+                    } else {
+                        console.log("❌ [DEBUG] 모델 데이터가 아직 없음.");
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ [ERROR] 모델 상태 조회 실패:", error);
+                });
+        }
+
+        // 🔥 최초 실행 + 5초마다 반복 실행 (최대 2분 동안)
+        fetchMeshStatus();
+        let statusCheckInterval = setInterval(fetchMeshStatus, 5000);
+
+        // 2분 후에도 안 뜨면 중단
+        setTimeout(() => {
+            clearInterval(statusCheckInterval);
+            console.log("⏳ [DEBUG] 2분 초과: 모델이 아직 준비되지 않음.");
+        }, 120000);
+    });
+</script>
+
+{% endblock content %}

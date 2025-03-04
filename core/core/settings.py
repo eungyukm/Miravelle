@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     # Create app list
     "users",
     "assets",
-    
+    "workspace",
+    "model_storage",
 ]
 
 MIDDLEWARE = [
