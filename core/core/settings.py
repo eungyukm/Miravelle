@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "users",
     "accounts",
     "assets",
+    "workspaces",
     
 ]
 
