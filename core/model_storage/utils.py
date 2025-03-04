@@ -2,11 +2,14 @@ from azure.storage.blob import BlobServiceClient
 import os
 from dotenv import load_dotenv
 
-
+# 개발 환경에서만 .env 로드
+load_dotenv()
+    
 # Storage Account Name과 Key 직접 사용
 AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
 AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
+AZURE_CONNECTION_STRING = os.getenv("AZURE_CONNECTION_STRING")
 
 # Blob Service Client 수동 설정
 blob_service_client = BlobServiceClient(
@@ -34,8 +37,11 @@ def download_fbx_from_azure(blob_name, local_file_path):
 
     :param blob_name: Azure Blob에 저장된 파일명
     :param local_file_path: 로컬에 저장할 파일 경로
-    """
+    """    
     try:
+        if not AZURE_CONNECTION_STRING:
+            raise ValueError("AZURE_CONNECTION_STRING is not set in environment variables")
+
         blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
         blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
 
