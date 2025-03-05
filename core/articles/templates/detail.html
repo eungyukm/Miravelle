@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>게시물 상세 정보</h1>
+    
+    <div class="card">
+        <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
+        <div class="card-body">
+            <h5 class="card-title">{{ article.title }}</h5>
+            <p class="card-text"><strong>모델 프롬프트:</strong> {{ article.model_prompt }}</p>
+            <p class="card-text"><strong>텍스쳐 프롬프트:</strong> {{ article.texture_prompt }}</p>
+            <p class="card-text"><strong>태그:</strong> {{ article.tags }}</p>
+            <p class="card-text"><strong>모델 시드:</strong> {{ article.model_seed }}</p>
+            <p class="card-text"><strong>좋아요 수:</strong> {{ article.like_count }}</p>
+            <p class="card-text"><strong>싫어요 수:</strong> {{ article.dislike_count }}</p>
+            <p class="card-text"><strong>생성 시간:</strong> {{ article.created_at }}</p>
+
+            <!-- 좋아요/싫어요 버튼 추가 (구현 필요) -->
+            <button type="button">좋아요</button>
+            <button type = "button">싫어요</button>
+            <a href="{% url 'articles:main' %}" class="btn btn-primary">목록으로 돌아가기</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
