@@ -25,7 +25,7 @@ urlpatterns = [
     path("users/", include('users.urls')),
     path("assets/", include('assets.urls')),
     path("workspace/", include('workspace.urls')),
-    path("article/", include('articles.urls')),
+    path("articles/", include('articles.urls')),
     path("threeword/", include("threeworld.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) #유저가 업로드한 파일들을 가져오는 경로
 
