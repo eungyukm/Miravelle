@@ -33,6 +33,8 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
 ]
+# 로그인 URL 추가
+LOGIN_URL = "/users/login/"
 
 # Application definition
 
