@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,6 +36,13 @@ ALLOWED_HOSTS = [
 ]
 # 로그인 URL 추가
 LOGIN_URL = "/users/login/"
+
+STATIC_URL = '/static/'
+
+# 정적 파일 경로 설정
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'core/static'),
+]
 
 # Application definition
 
