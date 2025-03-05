@@ -33,6 +33,8 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
 ]
+# 로그인 URL 추가
+LOGIN_URL = "/users/login/"
 
 # Application definition
 
@@ -45,10 +47,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     
     # Create app list
-    "users",
-    "assets",
-    "workspace",
+    "users", # 유저 관라 앱
+    "assets", # 유저가 생상한 모델을 볼 수 있는 공간 관리 앱
+    "workspace", # 작업 공간 앱
     "model_storage",
+    "articles", # 메인 화면에 있는 글 관리 앱
 ]
 
 MIDDLEWARE = [
@@ -128,6 +131,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+# Media files
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
