@@ -73,11 +73,11 @@
 
                 <!-- 에셋 액션 버튼 영역 -->
                 <div class="card-footer bg-transparent border-0">
-                    <div class="d-flex justify-content-between align-items-center"> <!-- 카드 아래에 버튼 배치 -->
-                        <button class="btn btn-outline-dark btn-sm">상세보기</button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'assets:asset_detail' asset.id %}" class="btn btn-outline-dark btn-sm">상세보기</a>
                         <div class="btn-group">
-                            <button class="btn btn-outline-dark btn-sm">수정</button>
-                            <button class="btn btn-outline-danger btn-sm">삭제</button>
+                            <a href="{% url 'assets:asset_edit' asset.id %}" class="btn btn-outline-dark btn-sm">수정</a>
+                            <button onclick="showDeleteModal('{{ asset.id }}')" class="btn btn-outline-danger btn-sm">삭제</button>
                         </div>
                     </div>
                 </div>
@@ -93,4 +93,71 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">에셋 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>정말로 이 에셋을 삭제하시겠습니까?</p>
+                <p class="text-danger">이 작업은 되돌릴 수 없습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let assetIdToDelete = null;
+    
+    function showDeleteModal(assetId) {
+        assetIdToDelete = assetId;
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+    
+    async function confirmDelete() {
+        if (!assetIdToDelete) return;
+        
+        try {
+            const response = await fetch(`/assets/${assetIdToDelete}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %} 
