@@ -28,7 +28,7 @@ def login(request):
         if form.is_valid():
             # Log the user in
             auth_login(request, form.get_user())   # 로그인 하기
-            return redirect("users:main")
+            return redirect("articles:main")
     
     else:    
         form = CustomAuthenticationForm()  # CustomAuthenticationForm 사용
@@ -40,4 +40,4 @@ def login(request):
 @login_required
 def logout(request):
     auth_logout(request)    # 로그아웃 하기
-    return redirect("users:main")
+    return redirect("articles:main")
