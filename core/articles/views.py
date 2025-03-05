@@ -16,14 +16,15 @@ class ArticleList(View):
 class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
     login_url = "/users/login/" # 로그인 되지 않았으면 로그인 url로 보냄
     
-    def post(self, request, pk, like_type): # 이렇게 적으면 article_id를 URL에서 받음
-        article = get_object_or_404(Article, pk=pk)
+    def post(self, request,id, like_type): # 이렇게 적으면 article_id를 URL에서 받음
+        article = get_object_or_404(Article, pk=id)
         user = request.user # 현재 로그인한 유저
         
-        # 오류 처리
-        if like_type not in [("Like","like"), ("Dislike", "dislike")]:
+        # like_type 유효성 검사 (모델 choices 사용)
+        valid_like_types = [choice[0] for choice in Like.like_type.field.choices] #Like 모델 필드 LikeType의 choices 속성 사용
+        if like_type not in valid_like_types:
             return HttpResponseForbidden("잘못된 요청입니다.")
-        
+
         # 이미 좋아요/싫어요를 누른 경우 (예 : 취소 또는 변경)
         try:
             existing_like = Like.objects.get(user=user, article=article)
@@ -31,13 +32,13 @@ class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
                 # 같은 종류의 좋아요/싫어요를 다시 누른 경우 (예: 취소)
                 existing_like.delete()
                 
-                if like_type == "like":
+                if like_type == "❤️":
                     article.like_count = max(0, article.like_count - 1) # 최댓값 == 0, 게시물의 좋아요 개수에서 -1
                 else:
                     article.dislike_count = max(0, article.dislike_count - 1) # 최댓값 == 0, like가 아니라 dislike일 경우
             else: # 예) 좋아요 -> 싫어요, 싫어요 -> 좋아요
                 # 다른 종류의 좋아요/싫어요로 변경
-                if like_type == "like":
+                if like_type == "❤️":
                     article.like_count += 1
                     article.dislike_count = max(0, article.dislike_count - 1) # 싫어요 -> 좋아요로 간 경우임
                 else:
@@ -52,12 +53,12 @@ class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
         except Like.DoesNotExist:
             # 좋아요/싫어요를 처음 누른 경우
             Like.objects.create(user=user, article=article, like_type=like_type)
-            if like_type == "like":
+            if like_type == "❤️":
                 article.like_count += 1
             else:
                 article.dislike_count += 1
             article.save()
-        return redirect("ArticleDetail", pk=pk) # 상세 페이지로 리다이렉션
+        return redirect("articles:main") # 상세 페이지로 리다이렉션
     
     
 # 게시물 작성하기
@@ -72,10 +73,14 @@ class ArticleCreate(LoginRequiredMixin, View): # 로그인된 사용자만 접�
     def post(self, request):
         form = ArticleForm(request.POST, request.FILES)
         print("폼 데이터:", request.POST) # 디버깅을 위해 폼 데이터 출력
+        
         if form.is_valid():
-            print("폼이 유효합니다.") # 오류 메시지
-            article = form.save()
+            print("폼이 유효합니다.")
+            article = form.save(commit=False)  # 즉시 저장하지 않고 Article 객체 생성
+            article.user_id = request.user  # 현재 로그인한 사용자 설정
+            article.save()  # 변경 사항과 함께 저장
             return redirect("articles:articledetail", article.pk)
+        
         else:
             print("폼이 유효하지 않습니다. 오류:", form.errors) # 폼 오류 출력
             context = {"form": form}
@@ -85,12 +90,11 @@ class ArticleCreate(LoginRequiredMixin, View): # 로그인된 사용자만 접�
 # 게시물 상세보기
 class ArticleDetail(LoginRequiredMixin, View):
     login_url = "/users/login/"
-    
-    def get(self, request, pk):
-        article = get_object_or_404(Article, pk=pk)
-        form = ArticleForm(article)
+
+    def get(self, request, id):
+        article = get_object_or_404(Article, pk=id)
         content = {
-            "form":form
-            }
+            "article": article
+        }
         return render(request, "detail.html", content)
         
