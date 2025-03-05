@@ -39,7 +39,7 @@
 </div>
 
 <script>
-    let currentJobId = null;
+    let currentJobId = localStorage.getItem("currentJobId") || null;
 
     document.addEventListener("DOMContentLoaded", function () {
         console.log("🔥 [DEBUG] create_mesh.html 로드됨!");
@@ -48,14 +48,19 @@
         const loadingSpinner = document.getElementById("loadingSpinner");
         const statusSection = document.getElementById("statusSection");
         const checkStatusBtn = document.getElementById("checkStatusBtn");
-        const urlParams = new URLSearchParams(window.location.search);
-        const jobId = urlParams.get("job_id");  // 🔥 URL에서 job_id 추출
-        console.log("🔥 Extracted job_id:", jobId);
+        const errorMessage = document.getElementById("error-message");
+        const generateBtn = document.getElementById("generateBtn");
+        const jobIdText = document.getElementById("jobIdText");
 
+        function updateStatusButton() {
+            checkStatusBtn.disabled = !currentJobId;
+        }
 
-        if (!meshForm || !loadingSpinner || !statusSection || !checkStatusBtn) {
-            console.error("❌ [ERROR] 필수 요소 중 하나가 누락되었습니다.");
-            return;
+        // 🔥 페이지 로드 시 이전 작업 ID가 있으면 표시
+        if (currentJobId) {
+            jobIdText.textContent = `Job ID: ${currentJobId}`;
+            statusSection.style.display = "block";
+            updateStatusButton();
         }
 
         meshForm.addEventListener("submit", function(event) {
@@ -65,48 +70,66 @@
             const jsonData = Object.fromEntries(formData.entries());
 
             loadingSpinner.style.display = "block";
-            document.getElementById("generateBtn").disabled = true;
-            document.getElementById("error-message").textContent = "";
+            generateBtn.disabled = true;
+            errorMessage.textContent = "";
             statusSection.style.display = "none";
 
-            fetch("/workspace/create/api/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify(jsonData)
+            fetch("/workspace/meshes/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify(jsonData)
             })
+            
             .then(response => response.json().then(data => ({ status: response.status, body: data })))
             .then(({ status, body }) => {
-                if (status === 200 && body.job_id) {
+                if ((status === 200 || status === 202) && body.job_id) { // ✅ 202도 처리
                     alert("✅ Mesh 생성 요청 성공! 작업 상태를 확인하세요.");
                     currentJobId = body.job_id;
-                    document.getElementById("jobIdText").textContent = `Job ID: ${currentJobId}`;
+                    localStorage.setItem("currentJobId", currentJobId); // ✅ job_id 저장
+                    jobIdText.textContent = `Job ID: ${currentJobId}`;
                     statusSection.style.display = "block";
-                    document.getElementById("generateBtn").disabled = false;
-                    loadingSpinner.style.display = "none";
+                    updateStatusButton();
                 } else {
                     throw new Error(body.error || "Unknown error occurred");
                 }
             })
             .catch(error => {
                 console.error("API 요청 실패:", error);
-                document.getElementById("error-message").textContent = "❌ Error: " + error.message;
-                document.getElementById("generateBtn").disabled = false;
+                errorMessage.textContent = "❌ Error: " + error.message;
+            })
+            .finally(() => {
                 loadingSpinner.style.display = "none";
+                generateBtn.disabled = false;
             });
         });
 
-        // 🔥 Check Status 버튼을 누르면 preview 페이지로 이동
+        // 🔥 Check Status 버튼 클릭 시 상태 확인 후 미리보기 페이지로 이동
         checkStatusBtn.addEventListener("click", function () {
-            if (!currentJobId) {
-                alert("⚠️ 작업 ID가 없습니다.");
-                return;
-            }
+            if (!currentJobId) return;
 
-            console.log(`🔍 [DEBUG] Redirecting to: /workspace/${currentJobId}/preview/`);
-            window.location.href = `/workspace/${currentJobId}/preview/`; // ✅ URL 수정
+            checkStatusBtn.disabled = true; // 🔥 중복 클릭 방지
+            checkStatusBtn.textContent = "Checking...";
+            setTimeout(() => {
+                checkStatusBtn.disabled = false;
+                checkStatusBtn.textContent = "Check Status";
+            }, 3000);  // 3초 후 다시 활성화
+
+            fetch(`/workspace/${currentJobId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "completed") {
+                        window.location.href = `/workspace/${currentJobId}/preview/`; // ✅ 완료되면 이동
+                    } else {
+                        alert("⚠️ 모델이 아직 생성 중입니다. 잠시 후 다시 시도하세요.");
+                    }
+                })
+                .catch(error => {
+                    console.error("🔴 상태 확인 실패:", error);
+                    alert("❌ 상태 확인 중 오류 발생.");
+                });
         });
     });
 </script>

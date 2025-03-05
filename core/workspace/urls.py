@@ -8,11 +8,12 @@ from .views import (
     refine_mesh
 )
 app_name = "workspace"
+import workspace.views as views
+
 urlpatterns = [
-    path("create/", create_mesh_page, name="create_mesh_page"),
-    path("create/api/", create_mesh, name="create_mesh"),
-    path("<str:mesh_id>/", get_mesh, name="get_mesh"),
-    path("<str:mesh_id>/preview/", preview_mesh, name="preview_mesh"),  # ✅ HTML 렌더링 뷰로 변경!
-    path("preview/<str:job_id>/", preview_mesh_page, name="preview_mesh_page"),
-    path("<str:mesh_id>/refine/", refine_mesh, name="refine_mesh"),
+    path("create/", views.create_mesh_page, name="create_mesh_page"),
+    path("meshes/", views.create_mesh, name="create_mesh"),
+    path("<str:mesh_id>/", views.get_mesh, name="get_mesh"),
+    path("<str:mesh_id>/preview/", views.preview_mesh_page, name="preview_mesh_page"),  # ✅ HTML 렌더링용 뷰 사용
+    path("<str:mesh_id>/refine/", views.refine_mesh, name="refine_mesh"),
 ]
