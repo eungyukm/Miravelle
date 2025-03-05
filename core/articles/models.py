@@ -46,7 +46,7 @@ class Article(models.Model):
     user_id = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="articles"
         ) # 유저 아이디
-    job_id = models.ForeignKey(MeshModel, on_delete=models.CASCADE) # 작업 아이디
+    job_id = models.ForeignKey(MeshModel, on_delete=models.CASCADE, null=True) # 작업 아이디
     title = models.CharField(max_length=255) # 게시글 제목
     created_at = models.DateTimeField(auto_now_add=True) # 생성 시간
     tags = models.CharField(max_length=100, blank=True)
@@ -80,7 +80,7 @@ class Like(models.Model):
         Article, on_delete=models.CASCADE, related_name="article_likes"
     )
     like_type = models.CharField(
-        max_length=10, choices=(("Like", "like"), ("Dislike", "dislike"))
+        max_length=10, choices=(("❤️", "like"), ("🤨", "dislike"))
     )
     
     # 유저-게시글 조합은 유일해야 함. 중복 좋아요 방지

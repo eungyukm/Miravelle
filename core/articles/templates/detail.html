@@ -7,21 +7,26 @@
     <h1>게시물 상세 정보</h1>
     
     <div class="card">
-        <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
+        <img src="{{ article.image.url }}" class="card-img-top" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         <div class="card-body">
             <h5 class="card-title">{{ article.title }}</h5>
-            <p class="card-text"><strong>모델 프롬프트:</strong> {{ article.model_prompt }}</p>
-            <p class="card-text"><strong>텍스쳐 프롬프트:</strong> {{ article.texture_prompt }}</p>
-            <p class="card-text"><strong>태그:</strong> {{ article.tags }}</p>
-            <p class="card-text"><strong>모델 시드:</strong> {{ article.model_seed }}</p>
-            <p class="card-text"><strong>좋아요 수:</strong> {{ article.like_count }}</p>
-            <p class="card-text"><strong>싫어요 수:</strong> {{ article.dislike_count }}</p>
-            <p class="card-text"><strong>생성 시간:</strong> {{ article.created_at }}</p>
-
-            <!-- 좋아요/싫어요 버튼 추가 (구현 필요) -->
-            <button type="button">좋아요</button>
-            <button type = "button">싫어요</button>
-            <a href="{% url 'articles:main' %}" class="btn btn-primary">목록으로 돌아가기</a>
+            <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" style="display: inline-block; margin-right: 15px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light">❤️</button>
+                <p class="card-text" style="display: inline-block;"><strong>{{ article.like_count }}</strong></p>
+            </form>
+            <form method="post" action="{% url "articles:articlelike" article.pk "🤨" %}" style="display: inline-block; margin-right: 10px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light">🤨</button>
+                <p class="card-text" style="display: inline-block;"><strong>{{ article.dislike_count }}</strong></p>
+            </form>
+            <p class="card-text"><strong>Model prompt : </strong> {{ article.model_prompt }}</p>
+            <p class="card-text"><strong>Texture prompt :</strong> {{ article.texture_prompt }}</p>
+            <p class="card-text"><strong>Tags :</strong> {{ article.tags }}</p>
+            <p class="card-text"><strong>Model seed :</strong> {{ article.model_seed }}</p>
+            <p class="card-text"><strong>Created date :</strong> {{ article.created_at }}</p>
+            
+            <a href="{% url 'articles:main' %}" class="btn btn-primary">Back to Main</a>
         </div>
     </div>
 </div>
