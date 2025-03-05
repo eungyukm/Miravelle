@@ -24,4 +24,5 @@ urlpatterns = [
     path("assets/", include('assets.urls')),
     path("workspace/", include('workspace.urls')),
     path("article/", include('articles.urls')),
+    path("threeword/", include("threeworld.urls")),
 ]
