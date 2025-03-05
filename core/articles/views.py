@@ -64,11 +64,22 @@ class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
 class ArticleCreate(LoginRequiredMixin, View): # 로그인된 사용자만 접근 가능
     login_url = "/users/login/" # 로그인 안 돼 있으면 보내버림
     
+    def get(self, request):
+        form = ArticleForm()
+        content = {"form":form}
+        return render(request,"create.html", content)
+    
     def post(self, request):
         form = ArticleForm(request.POST, request.FILES)
+        print("폼 데이터:", request.POST) # 디버깅을 위해 폼 데이터 출력
         if form.is_valid():
+            print("폼이 유효합니다.") # 오류 메시지
             article = form.save()
             return redirect("articles:articledetail", article.pk)
+        else:
+            print("폼이 유효하지 않습니다. 오류:", form.errors) # 폼 오류 출력
+            context = {"form": form}
+            return render(request, "create.html", context)
 
 
 # 게시물 상세보기
