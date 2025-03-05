@@ -8,7 +8,9 @@ from django.http import HttpResponseForbidden # error 403(서버에 요청은 �
 # 게시글 목록 보기
 class ArticleList(View):
     def get(self, request):
-        return render(request, "main.html")
+        article_list = Article.objects.all()
+        context = {"article_list":article_list}
+        return render(request, "main.html", context)
     
 # 좋아요 게시물
 class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
