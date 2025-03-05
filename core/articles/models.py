@@ -80,7 +80,7 @@ class Like(models.Model):
         Article, on_delete=models.CASCADE, related_name="article_likes"
     )
     like_type = models.CharField(
-        max_length=10, choices=(("❤️", "👍🏻"), ("🤔", "🤨"))
+        max_length=10, choices=(("Like", "like"), ("Dislike", "dislike"))
     )
     
     # 유저-게시글 조합은 유일해야 함. 중복 좋아요 방지
