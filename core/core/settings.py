@@ -61,7 +61,11 @@ INSTALLED_APPS = [
     "model_storage",
     "articles", # 메인 화면에 있는 글 관리 앱
     "threeworld", # three.js app
-    "utils",
+    "utils", # 유틸리티 관련 테스팅 및 관리 앱
+
+    # DRF & Swagger
+    "rest_framework",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
