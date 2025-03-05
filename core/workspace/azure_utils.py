@@ -65,3 +65,33 @@ def upload_file_to_azure(file_url: str, task_id: str, file_type: str, file_name:
     
 # thumbnail_url = "https://assets.meshy.ai/c9103216-ab25-47b6-ad99-a594f1faa190/tasks/019560fe-4ff3-7277-8561-ddeb101d0f16/output/preview.png?Expires=4894646400&Signature=n1h7QNidmpvQfJfL2vGrY7FVrGPlO3GuhlyhCnadYggB32el~89zEQ04lql7pm13w2waMj6eyp0XKcbpPGA0ETe4Q~CC50bUJ1R2QMFR6a~vfxBdyt~3suST28I30ijU~BUU3mdZkMi2A8zfNc5YdoPrGvNBxswRT0b-yvsYfO9ydGNC7zukc6nO1ef7l~26LmDE7vni6N6cQs7laFUBArgsfSz6vk877dmDWHjbNCusPTp0ODxI6fzhgGz1PN9pZ0optZ9qLe2K9bqwf7XrRYptKmOGed6NwgDn4qfAtc5ld0OmV~S3so3Ng5l2a7OPKH-Yfm1ux27fHAy4-oiRgA__&Key-Pair-Id=KL5I0C8H7HX83"
 # upload_file_to_azure(thumbnail_url, "123141", "thumbnail", "test.png")
+
+
+def upload_mesh_assets(mesh):
+    """
+    Meshy API에서 받은 URL을 Azure로 업로드하고 MeshModel 필드 업데이트
+    :param mesh: MeshModel 인스턴스
+    """
+    updated = False
+
+    if mesh.image_url and not mesh.image_path:
+        image_blob_url = upload_file_to_azure(mesh.image_url, mesh.job_id, "images", f"{mesh.job_id}.png")
+        if "upload failed" not in image_blob_url:
+            mesh.image_path = image_blob_url
+            updated = True
+
+    if mesh.video_url and not mesh.video_path:
+        video_blob_url = upload_file_to_azure(mesh.video_url, mesh.job_id, "videos", f"{mesh.job_id}.mp4")
+        if "upload failed" not in video_blob_url:
+            mesh.video_path = video_blob_url
+            updated = True
+
+    if mesh.fbx_url and not mesh.fbx_path:
+        fbx_blob_url = upload_file_to_azure(mesh.fbx_url, mesh.job_id, "fbx", f"{mesh.job_id}.fbx")
+        if "upload failed" not in fbx_blob_url:
+            mesh.fbx_path = fbx_blob_url
+            updated = True
+
+    if updated:
+        mesh.save()
+        logging.info(f"Azure 업로드 완료: {mesh.job_id}")
