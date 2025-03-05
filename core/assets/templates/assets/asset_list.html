@@ -76,7 +76,6 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="{% url 'assets:asset_detail' asset.id %}" class="btn btn-outline-dark btn-sm">상세보기</a>
                         <div class="btn-group">
-                            <a href="{% url 'assets:asset_edit' asset.id %}" class="btn btn-outline-dark btn-sm">수정</a>
                             <button onclick="showDeleteModal('{{ asset.id }}')" class="btn btn-outline-danger btn-sm">삭제</button>
                         </div>
                     </div>

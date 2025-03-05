@@ -61,8 +61,9 @@ def delete_asset(request, pk):
         return JsonResponse({"message": "Asset deleted successfully"})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
 
-
+# ────────────────────────── 테스트용 에셋 생성 API ──────────────────────────
 @csrf_exempt
 @login_required
 def test_create_asset(request):
@@ -103,23 +104,6 @@ def test_create_asset(request):
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+# ──────────────────────────── 여기 까지 테스트 코드 ────────────────────────────
 
 
-@login_required
-def update_asset(request, pk):
-    """
-    에셋 수정 뷰
-    GET: 수정 폼 표시
-    POST: 수정 사항 저장
-    """
-    asset = get_object_or_404(Asset, pk=pk, user=request.user)
-    
-    if request.method == "POST":
-        # POST 요청 처리
-        asset.title = request.POST.get('title', asset.title)
-        asset.content = request.POST.get('content', asset.content)
-        asset.save()
-        return redirect('assets:asset_detail', pk=asset.pk)
-        
-    # GET 요청 처리
-    return render(request, 'assets/asset_edit.html', {'asset': asset})
