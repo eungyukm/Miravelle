@@ -5,10 +5,6 @@ from django.contrib.auth.decorators import login_required
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
 from django.urls import reverse
 
-# 메인 화면
-def main(request):
-    return render(request, "main.html")
-
 
 # 회원가입
 def Register(request):
