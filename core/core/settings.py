@@ -37,6 +37,13 @@ ALLOWED_HOSTS = [
 # 로그인 URL 추가
 LOGIN_URL = "/users/login/"
 
+STATIC_URL = '/static/'
+
+# 정적 파일 경로 설정
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'core/static'),
+]
+
 # Application definition
 
 INSTALLED_APPS = [
