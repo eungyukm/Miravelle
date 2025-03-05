@@ -10,8 +10,9 @@
         <form method="POST" action="{% url 'users:register' %}">
             {% csrf_token %}
             
-            <div class="form-group">
+            <div class="mb-1">
                 <label for="{{ form.username.id_for_label }}" class="form-label"><strong>ID</strong></label>
+                <br>
                 {{ form.username }}
                 {% if form.username.errors %}
                     <div class="alert alert-danger">
@@ -22,8 +23,9 @@
                 {% endif %}
             </div>
 
-            <div class="form-group">
+            <div class="mb-1">
                 <label for="{{ form.surname.id_for_label }}" class="form-label"><strong>Name</strong></label>
+                <br>
                 {{ form.surname }}
                 {% if form.surname.errors %}
                     <div class="alert alert-danger">
@@ -34,8 +36,9 @@
                 {% endif %}
             </div>
 
-            <div class="form-group">
+            <div class="mb-1">
                 <label for="{{ form.password1.id_for_label }}" class="form-label"><strong>Password</strong></label>
+                <br>
                 {{ form.password1 }}
                 {% if form.password1.errors %}
                     <div class="alert alert-danger">
@@ -46,8 +49,9 @@
                 {% endif %}
             </div>
 
-            <div class="mb-3">
+            <div class="mb-1">
                 <label for="{{ form.password2.id_for_label }}" class="form-label"><strong>Check Password</strong></label>
+                <br>
                 {{ form.password2 }}
                 {% if form.password2.errors %}
                     <div class="alert alert-danger">
@@ -58,8 +62,9 @@
                 {% endif %}
             </div>
 
-            <div class="form-group">
+            <div class="mb-1">
                 <label for="{{ form.email.id_for_label }}" class="form-label"><strong>Email</strong></label>
+                <br>
                 {{ form.email }}
                 {% if form.email.errors %}
                     <div class="alert alert-danger">
@@ -70,8 +75,9 @@
                 {% endif %}
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id = "messageform1">
                 <label for="{{ form.message.id_for_label }}" class="form-label"><strong>Message</strong></label>
+                <br>
                 {{ form.message }}
                 {% if form.message.errors %}
                     <div class="alert alert-danger">
@@ -88,15 +94,8 @@
 </div>
 
 <style>
-    body {
-        background-color:#ffffff; /* Light gray background */
-        display: flex;
-        flex-direction: column;
-        min-height: 20vh; /* Ensure full height */
-    }
-    /* Main Container */
+ /* Main Container */
     .main-container {
-        flex: 1; /* Allow the main container to take up remaining space */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -106,17 +105,30 @@
     /* Login Form Container */
     .login-container {
         width: 30%;
-        padding: 20px;
+        padding: 40px;
         background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        resize: vertical; /* 세로로만 크기 조절 가능하도록 */
+        border-radius: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
     }
-    .form-control {
-        border: 1px solid #ced4da;
-        border-radius: 5px;
-        padding: 8px;
+    /* 각 필드 입력칸 조절*/
+    #id_username {
         width: 100%;
+    }
+    #id_surname {
+        width: 100%;
+    }
+    #id_password1 {
+        width: 100%;
+    }
+    #id_password2{
+        width: 100%;
+    }
+    #id_email{
+        width: 100%;
+    }
+    #messageform1 textarea {
+        width: 100%;
+        height: 120px;
     }
 </style>
 

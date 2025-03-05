@@ -3,7 +3,7 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin # 로그인한 사용자만 특정 view에 접근할 수 있음
 from .models import Article, Like
 from django.http import HttpResponseForbidden # error 403(서버에 요청은 갔지만, 권한 때문에 요청 거절)
-
+from .forms import ArticleForm
 
 # 게시글 목록 보기
 class ArticleList(View):
@@ -16,12 +16,12 @@ class ArticleList(View):
 class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
     login_url = "/users/login/" # 로그인 되지 않았으면 로그인 url로 보냄
     
-    def post(self, request, article_id, like_type): # 이렇게 적으면 article_id를 URL에서 받음
-        article = get_object_or_404(Article, pk=article_id)
+    def post(self, request, pk, like_type): # 이렇게 적으면 article_id를 URL에서 받음
+        article = get_object_or_404(Article, pk=pk)
         user = request.user # 현재 로그인한 유저
         
         # 오류 처리
-        if like_type not in [("like"), ("dislike")]:
+        if like_type not in [("Like","like"), ("Dislike", "dislike")]:
             return HttpResponseForbidden("잘못된 요청입니다.")
         
         # 이미 좋아요/싫어요를 누른 경우 (예 : 취소 또는 변경)
@@ -57,4 +57,40 @@ class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
             else:
                 article.dislike_count += 1
             article.save()
-        return redirect("ArticleDetail", pk=article_id) # 상세 페이지로 리다이렉션
+        return redirect("ArticleDetail", pk=pk) # 상세 페이지로 리다이렉션
+    
+    
+# 게시물 작성하기
+class ArticleCreate(LoginRequiredMixin, View): # 로그인된 사용자만 접근 가능
+    login_url = "/users/login/" # 로그인 안 돼 있으면 보내버림
+    
+    def get(self, request):
+        form = ArticleForm()
+        content = {"form":form}
+        return render(request,"create.html", content)
+    
+    def post(self, request):
+        form = ArticleForm(request.POST, request.FILES)
+        print("폼 데이터:", request.POST) # 디버깅을 위해 폼 데이터 출력
+        if form.is_valid():
+            print("폼이 유효합니다.") # 오류 메시지
+            article = form.save()
+            return redirect("articles:articledetail", article.pk)
+        else:
+            print("폼이 유효하지 않습니다. 오류:", form.errors) # 폼 오류 출력
+            context = {"form": form}
+            return render(request, "create.html", context)
+
+
+# 게시물 상세보기
+class ArticleDetail(LoginRequiredMixin, View):
+    login_url = "/users/login/"
+    
+    def get(self, request, pk):
+        article = get_object_or_404(Article, pk=pk)
+        form = ArticleForm(article)
+        content = {
+            "form":form
+            }
+        return render(request, "detail.html", content)
+        

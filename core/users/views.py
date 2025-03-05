@@ -5,10 +5,6 @@ from django.contrib.auth.decorators import login_required
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
 from django.urls import reverse
 
-# 메인 화면
-def main(request):
-    return render(request, "main.html")
-
 
 # 회원가입
 def Register(request):
@@ -32,7 +28,7 @@ def login(request):
         if form.is_valid():
             # Log the user in
             auth_login(request, form.get_user())   # 로그인 하기
-            return redirect("users:main")
+            return redirect("articles:main")
     
     else:    
         form = CustomAuthenticationForm()  # CustomAuthenticationForm 사용
@@ -44,4 +40,4 @@ def login(request):
 @login_required
 def logout(request):
     auth_logout(request)    # 로그아웃 하기
-    return redirect("users:main")
+    return redirect("articles:main")

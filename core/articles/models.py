@@ -40,19 +40,19 @@ class Article(models.Model):
     -> def save, def generate_unique_model_seed로 저장 및 유니크 관리
     """
     id = models.AutoField(primary_key=True)
+    image = models.ImageField(upload_to="article/image/") # 모델 이미지
+    like_count = models.PositiveIntegerField(default=0) # 좋아요 개수
+    dislike_count = models.PositiveIntegerField(default=0) # 싫어요 개수
     user_id = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="articles"
         ) # 유저 아이디
     job_id = models.ForeignKey(MeshModel, on_delete=models.CASCADE) # 작업 아이디
-    title = models.CharField(max_length=255, default="model_prompt") # 게시글 제목
+    title = models.CharField(max_length=255) # 게시글 제목
+    created_at = models.DateTimeField(auto_now_add=True) # 생성 시간
+    tags = models.CharField(max_length=100, blank=True)
     model_prompt = models.TextField()
     texture_prompt = models.TextField()
     model_seed = models.IntegerField(unique=True) # 타이틀의 고유 번호
-    image = models.ImageField(upload_to="article/image/") # 모델 이미지
-    like_count = models.PositiveIntegerField(default=0) # 좋아요 개수
-    dislike_count = models.PositiveIntegerField(default=0) # 싫어요 개수
-    created_at = models.DateTimeField(auto_now_add=True) # 생성 시간
-    tags = models.CharField(max_length=100, blank=True)
     
     
     # model_seed는 정한 범위값 내에서 랜덤으로 부여(중복 허용 X)
