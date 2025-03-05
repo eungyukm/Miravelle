@@ -1,0 +1,16 @@
+{# create.html #}
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>게시물 작성</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}  {# 폼 필드를 단락으로 표시 #}
+        <button type="submit" class="btn btn-dark">Complete</button>
+        <a href="{% url 'articles:main' %}" class="btn btn-secondary">Cancle</a>
+    </form>
+</div>
+{% endblock %}
