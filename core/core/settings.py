@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "workspace", # 작업 공간 앱
     "model_storage",
     "articles", # 메인 화면에 있는 글 관리 앱
+    "threeworld" # three.js app
 ]
 
 MIDDLEWARE = [
