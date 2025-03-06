@@ -26,15 +26,14 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# CSRF 설정 추가(Azure 웹에서 설정도 가능한데 일단 추가)
+# CSRF 설정
 CSRF_TRUSTED_ORIGINS = [
-    'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net',
-    'http://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
+    'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
 ]
 
 # Session 설정
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-SESSION_FILE_PATH = os.path.join(BASE_DIR, 'sessions')
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_SECURE = True
 
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
@@ -120,7 +119,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, 'db.sqlite3'),
         "OPTIONS": {
-            "timeout": 30,  # 데이터베이스 타임아웃 설정 (초)
+            "timeout": 30,
         }
     }
 }
