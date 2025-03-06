@@ -32,6 +32,10 @@ CSRF_TRUSTED_ORIGINS = [
     'http://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
 ]
 
+# Session 설정
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_FILE_PATH = os.path.join(BASE_DIR, 'sessions')
+
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
 
@@ -115,6 +119,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, 'db.sqlite3'),
+        "OPTIONS": {
+            "timeout": 30,  # 데이터베이스 타임아웃 설정 (초)
+        }
     }
 }
 
