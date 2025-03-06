@@ -117,10 +117,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, 'db.sqlite3'),
-        "OPTIONS": {
-            "timeout": 30,
-        }
+        "NAME": ":memory:",  # 메모리 기반 SQLite 사용, 추후에 PostgreSQL로 전환 (권장)
     }
 }
 
