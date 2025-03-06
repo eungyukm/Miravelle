@@ -34,9 +34,14 @@
 <div class="container py-5">
     <!-- 페이지 제목 섹션 -->
     <div class="row mb-4">
-        <div class="col">
-            <h2 class="text-dark mb-0">My 3D Assets</h2>
-            <p class="text-muted">내가 생성한 3D 모델링 에셋 목록입니다.</p> <!-- 페이지 제목 섹션 -->
+        <div class="col d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="text-dark mb-0">My 3D Assets</h2>
+                <p class="text-muted mb-0">내가 생성한 3D 모델링 에셋 목록입니다.</p>
+            </div>
+            <a href="{% url 'assets:asset_create' %}" class="btn btn-outline-dark">
+                <i class="bi bi-plus-lg"></i> 새 에셋 생성
+            </a>
         </div>
     </div>
 
@@ -47,14 +52,16 @@
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 border-0 shadow-sm">
                 <!-- 에셋 썸네일 영역 -->
-                <div class="card-img-top position-relative" style="height: 200px;">
+                <div class="card-img-top position-relative">
                     {% if asset.thumbnail %}
-                        <img src="{{ asset.thumbnail.url }}" 
-                             class="w-100 h-100 object-fit-cover" 
-                             alt="{{ asset.title }}">
+                        <div style="aspect-ratio: 16/9; overflow: hidden;">
+                            <img src="{{ asset.thumbnail.url }}" 
+                                 class="w-100 h-100 object-fit-contain bg-light" 
+                                 alt="{{ asset.title }}">
+                        </div>
                     {% else %}
                         <!-- 썸네일이 없을 경우 대체 이미지 -->
-                        <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                        <div style="aspect-ratio: 16/9;" class="bg-light d-flex align-items-center justify-content-center">
                             <span class="text-muted">No Preview</span>
                         </div>
                     {% endif %}
@@ -62,30 +69,28 @@
                 
                 <!-- 에셋 정보 영역 -->
                 <div class="card-body">
-                    <h5 class="card-title text-dark">{{ asset.title }}</h5> <!-- 제목 표시 -->
-                    <p class="card-text text-muted small mb-2"> <!-- 생성일 표시 -->
+                    <h5 class="card-title text-dark">{{ asset.title }}</h5>
+                    <p class="card-text text-muted small mb-2">
                         생성일: {{ asset.created_at|date:"Y.m.d" }}
                     </p>
-                    {% if asset.description %}
-                        <p class="card-text">{{ asset.description|truncatechars:100 }}</p> <!-- 설명 텍스트 최대 100자 제한 -->
+                    {% if asset.content %}
+                        <p class="card-text">{{ asset.content|truncatechars:100 }}</p>
                     {% endif %}
                 </div>
 
-                <!-- 에셋 액션 버튼 영역 -->
-                <div class="card-footer bg-transparent border-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{% url 'assets:asset_detail' asset.id %}" class="btn btn-outline-dark btn-sm">상세보기</a>
-                        <div class="btn-group">
-                            <button onclick="showDeleteModal('{{ asset.id }}')" class="btn btn-outline-danger btn-sm">삭제</button>
-                        </div>
-                    </div>
+                <!-- 액션 버튼 영역 -->
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <button onclick="showDeleteModal('{{ asset.id }}')" 
+                            class="btn btn-outline-dark btn-sm">
+                        <i class="bi bi-trash"></i> 삭제
+                    </button>
                 </div>
             </div>
         </div>
         {% empty %}
         <!-- 에셋이 없을 경우 표시될 메시지 -->
-        <div class="col-12 text-center py-5"> <!-- 컨테이너 안에서 가운데 정렬 -->
-            <div class="py-5"> <!-- 패딩 추가 -->
+        <div class="col-12 text-center py-5">
+            <div class="py-5">
                 <h4 class="text-muted mb-4">아직 생성된 에셋이 없습니다</h4>
             </div>
         </div>
@@ -106,8 +111,8 @@
                 <p class="text-danger">이 작업은 되돌릴 수 없습니다.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-outline-dark btn-sm" onclick="confirmDelete()">삭제</button>
             </div>
         </div>
     </div>
@@ -126,17 +131,22 @@
         if (!assetIdToDelete) return;
         
         try {
+            const csrftoken = getCookie('csrftoken');
             const response = await fetch(`/assets/${assetIdToDelete}/delete/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'  // 쿠키를 포함하여 요청
             });
             
             if (response.ok) {
+                // 성공 시 페이지 새로고침
                 window.location.reload();
             } else {
-                alert('삭제 중 오류가 발생했습니다.');
+                const data = await response.json();
+                alert(data.error || '삭제 중 오류가 발생했습니다.');
             }
         } catch (error) {
             console.error('Error:', error);
