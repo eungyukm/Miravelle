@@ -28,10 +28,9 @@ DEBUG = True
 
 # CSRF 설정 추가(Azure 웹에서 설정도 가능한데 일단 추가)
 CSRF_TRUSTED_ORIGINS = [
-    'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
+    'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net',
+    'http://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
 ]
-CSRF_COOKIE_DOMAIN = 'miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
-CSRF_USE_SESSIONS = True
 
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
