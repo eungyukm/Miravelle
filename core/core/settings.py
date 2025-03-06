@@ -26,6 +26,11 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# CSRF 설정 추가(Azure 웹에서 설정도 가능한데 일단 추가)
+CSRF_TRUSTED_ORIGINS = [
+    'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
+]
+
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
 
