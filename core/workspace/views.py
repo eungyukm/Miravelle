@@ -4,7 +4,6 @@ from django.http import StreamingHttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from sseclient import SSEClient
 from .models import MeshModel
 from .meshy_utils import call_meshy_api  # ✅ Meshy API 호출 함수
 
