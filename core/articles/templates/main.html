@@ -17,36 +17,50 @@
             <!-- Image Gallery (Right) -->
             <div class="col-md-9">
                 <div class="row">
-                    {% for article in article_list %}
-                    <div class="col-md-4">
-                        <div class="card">
-                            <a style="color: black;" href="{% url 'articles:articledetail' article.pk %}">
-                            <div class="card-img-top">
-                                {% if article.image %}
-                                <img src="{{ article.image.url }}" class="fas fa-image fa-5x" style="max-width: 100%; max-height: 100%; object-fit: contain;"></img>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" style="display: inline-block; margin-right: 15px;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-light">❤️</button>
-                                    <p class="card-text" style="display: inline-block;"><strong>{{ article.like_count }}</strong></p>
-                                </form>
-                                <form method="post" action="{% url "articles:articlelike" article.pk "🤨" %}" style="display: inline-block; margin-right: 10px;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-light">🤨</button>
-                                    <p class="card-text" style="display: inline-block;"><strong>{{ article.dislike_count }}</strong></p>
-                                </form>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-content">
-                                    User ID : {{ article.user_id }}<br>
-                                    Job ID : {{ article.job_id}}
-                                </p>
+                    {% if article_list %} <!--게시글이 있다면-->
+                        {% for article in article_list %}
+                        <div class="col-md-4">
+                            <div class="card">
+                                <a style="color: black;" href="{% url 'articles:articledetail' article.pk %}">
+                                <!--이미지 관련 로직-->
+                                <div class="card-img-top">
+                                    {% if article.image %}
+                                    <img src="{{ article.image.url }}" class="fas fa-image fa-5x" style="max-width: 100%; max-height: 100%; object-fit: contain;"></img>
+                                    {% else %}
+                                        No Image
+                                    {% endif %}
+                                </div>
+                                <!--게시글 목록에 표시될 로직-->
+                                <div>
+                                    <!--좋아요 버튼과 개수-->
+                                    <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" style="display: inline-block; margin-right: 15px;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-light">❤️</button>
+                                        <p class="card-text" style="display: inline-block;"><strong>{{ article.like_count }}</strong></p>
+                                    </form>
+                                    <!--싫어요 버튼과 개수-->
+                                    <form method="post" action="{% url "articles:articlelike" article.pk "🤨" %}" style="display: inline-block; margin-right: 10px;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-light">🤨</button>
+                                        <p class="card-text" style="display: inline-block;"><strong>{{ article.dislike_count }}</strong></p>
+                                    </form>
+                                </div>
+                                <!--게시글 목록에 표시될 작성자 ID와 Job ID-->
+                                <div class="card-body">
+                                    <p class="card-content">
+                                        User ID : {{ article.user_id }}<br>
+                                        Job ID : {{ article.job_id}}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
+                        {% endfor %}
+                    <!--article_list에 아무런 값도 없을 시-->
+                    {% else %}
+                        <div class="col-md-4">
+                            <p>No article.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
