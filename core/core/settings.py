@@ -32,8 +32,16 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session 설정
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_SECURE = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+# Cache 설정
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
 
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
@@ -117,10 +125,16 @@ WSGI_APPLICATION = "core.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",  # 메모리 기반 SQLite 사용, 추후에 PostgreSQL로 전환 (권장)
+        "NAME": os.path.join(BASE_DIR, 'db.sqlite3'),
+        "OPTIONS": {
+            "timeout": 30,
+        }
     }
 }
 
+# File Permissions
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
