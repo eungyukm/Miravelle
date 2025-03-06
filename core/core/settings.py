@@ -30,6 +30,8 @@ DEBUG = True
 CSRF_TRUSTED_ORIGINS = [
     'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
 ]
+CSRF_COOKIE_DOMAIN = 'miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
+CSRF_USE_SESSIONS = True
 
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
@@ -48,6 +50,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'core/static'),
 ]
+
+# 배포 환경에서 정적 파일을 모을 경로
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Application definition
 
