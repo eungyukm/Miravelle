@@ -28,6 +28,9 @@ urlpatterns = [
     path("threeworld/", include("threeworld.urls")),
     path("utils/", include("utils.urls")),
 
+    # main page
+    path("", include("articles.urls")),
+
     # Swagger UI
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # ReDoc UI
