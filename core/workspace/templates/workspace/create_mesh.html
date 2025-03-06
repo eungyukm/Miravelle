@@ -1,137 +1,54 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a 3D Model</title>
+    <link rel="stylesheet" href="{% static 'css/create_mesh.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Create a 3D Model</h2>
 
-{% block content %}
-<div class="container mt-5">
-    <h2>Create a 3D Model</h2>
+        <!-- 모델 생성 폼 -->
+        <form id="meshForm">
+            {% csrf_token %}
+            <label for="prompt">Prompt:</label>
+            <input type="text" id="prompt" name="prompt" required>
 
-    <form id="meshForm">
-        <div class="mb-3">
-            <label for="prompt" class="form-label">Prompt</label>
-            <input type="text" class="form-control" id="prompt" name="prompt" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="art_style" class="form-label">Art Style</label>
-            <select class="form-select" id="art_style" name="art_style">
+            <label for="art_style">Art Style:</label>
+            <select id="art_style" name="art_style">
                 <option value="realistic">Realistic</option>
                 <option value="sculpture">Sculpture</option>
             </select>
-        </div>
 
-        <button type="submit" id="generateBtn" class="btn btn-dark w-100">Generate Model</button>
+            <button type="submit" id="generateBtn">Generate Model</button>
 
-        <div id="loadingSpinner" style="display: none; text-align: center; margin-top: 10px;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+            <div id="loadingSpinner" class="hidden">
+                <p>Generating model, please wait...</p>
             </div>
-            <p>Generating model, please wait...</p>
+        </form>
+
+        <p id="error-message" class="error"></p>
+
+        <!-- 진행률 표시 -->
+        <div id="statusSection" class="hidden">
+            <div class="progress-bar">
+                <div id="progressBar">0%</div>
+            </div>
         </div>
 
-        <p id="error-message" class="text-danger mt-3"></p>
-    </form>
-
-    <!-- 🔥 작업 상태 확인 버튼 -->
-    <div id="statusSection" style="display: none; margin-top: 20px;">
-        <h3>Model Generation Status</h3>
-        <p id="jobIdText"></p>
-        <button id="checkStatusBtn" class="btn btn-dark w-100">Check Status</button>
+        <!-- 결과 출력 (썸네일 & 비디오) -->
+        <div id="previewSection" class="hidden">
+            <img id="thumbnail" alt="3D Model Thumbnail">
+            <video id="video" controls>
+                <source id="videoSource" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
     </div>
-</div>
 
-<script>
-    let currentJobId = localStorage.getItem("currentJobId") || null;
-
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("🔥 [DEBUG] create_mesh.html 로드됨!");
-
-        const meshForm = document.getElementById("meshForm");
-        const loadingSpinner = document.getElementById("loadingSpinner");
-        const statusSection = document.getElementById("statusSection");
-        const checkStatusBtn = document.getElementById("checkStatusBtn");
-        const errorMessage = document.getElementById("error-message");
-        const generateBtn = document.getElementById("generateBtn");
-        const jobIdText = document.getElementById("jobIdText");
-
-        function updateStatusButton() {
-            checkStatusBtn.disabled = !currentJobId;
-        }
-
-        // 🔥 페이지 로드 시 이전 작업 ID가 있으면 표시
-        if (currentJobId) {
-            jobIdText.textContent = `Job ID: ${currentJobId}`;
-            statusSection.style.display = "block";
-            updateStatusButton();
-        }
-
-        meshForm.addEventListener("submit", function(event) {
-            event.preventDefault();
-
-            const formData = new FormData(meshForm);
-            const jsonData = Object.fromEntries(formData.entries());
-
-            loadingSpinner.style.display = "block";
-            generateBtn.disabled = true;
-            errorMessage.textContent = "";
-            statusSection.style.display = "none";
-
-            fetch("/workspace/meshes/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify(jsonData)
-            })
-            
-            .then(response => response.json().then(data => ({ status: response.status, body: data })))
-            .then(({ status, body }) => {
-                if ((status === 200 || status === 202) && body.job_id) { // ✅ 202도 처리
-                    alert("✅ Mesh 생성 요청 성공! 작업 상태를 확인하세요.");
-                    currentJobId = body.job_id;
-                    localStorage.setItem("currentJobId", currentJobId); // ✅ job_id 저장
-                    jobIdText.textContent = `Job ID: ${currentJobId}`;
-                    statusSection.style.display = "block";
-                    updateStatusButton();
-                } else {
-                    throw new Error(body.error || "Unknown error occurred");
-                }
-            })
-            .catch(error => {
-                console.error("API 요청 실패:", error);
-                errorMessage.textContent = "❌ Error: " + error.message;
-            })
-            .finally(() => {
-                loadingSpinner.style.display = "none";
-                generateBtn.disabled = false;
-            });
-        });
-
-        // 🔥 Check Status 버튼 클릭 시 상태 확인 후 미리보기 페이지로 이동
-        checkStatusBtn.addEventListener("click", function () {
-            if (!currentJobId) return;
-
-            checkStatusBtn.disabled = true; // 🔥 중복 클릭 방지
-            checkStatusBtn.textContent = "Checking...";
-            setTimeout(() => {
-                checkStatusBtn.disabled = false;
-                checkStatusBtn.textContent = "Check Status";
-            }, 3000);  // 3초 후 다시 활성화
-
-            fetch(`/workspace/${currentJobId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "completed") {
-                        window.location.href = `/workspace/${currentJobId}/preview/`; // ✅ 완료되면 이동
-                    } else {
-                        alert("⚠️ 모델이 아직 생성 중입니다. 잠시 후 다시 시도하세요.");
-                    }
-                })
-                .catch(error => {
-                    console.error("🔴 상태 확인 실패:", error);
-                    alert("❌ 상태 확인 중 오류 발생.");
-                });
-        });
-    });
-</script>
-
-{% endblock content %}
+    <script src="{% static 'js/create_mesh.js' %}"></script>
+</body>
+</html>

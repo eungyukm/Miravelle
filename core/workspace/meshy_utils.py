@@ -12,28 +12,42 @@ MESHY_API_KEY = os.getenv("MESHY_API_KEY")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
-def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None):
+# meshy_utils.py 수정 (SSE 스트림 처리 추가 및 디버깅 유지)
+def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None, stream: bool = False):
     """
-    Meshy API 호출을 위한 유틸 함수
-    :param endpoint: API 엔드포인트 (예: "/openapi/v2/text-to-3d")
-    :param method: HTTP 메서드 ("GET" 또는 "POST")
-    :param payload: POST 요청 시 데이터
-    :return: 응답 데이터 (dict) 또는 None
+    Meshy API 호출을 위한 유틸 함수 (디버깅 추가, SSE 스트림 처리)
     """
     api_url = f"https://api.meshy.ai{endpoint}"
     headers = {"Authorization": f"Bearer {MESHY_API_KEY}"}
 
     try:
+        logging.info(f"API 요청 URL: {api_url}")
+        logging.info(f"API 요청 헤더: {headers}")
+        if payload:
+            logging.info(f"API 요청 페이로드: {payload}")
+
         if method == "GET":
-            response = requests.get(api_url, headers=headers)
+            response = requests.get(api_url, headers=headers, stream=stream)
         elif method == "POST":
-            response = requests.post(api_url, headers=headers, json=payload)
+            response = requests.post(api_url, headers=headers, json=payload, stream=stream)
         else:
             logging.error(f"Unsupported HTTP method: {method}")
             return None
 
+        logging.info(f"Meshy API 응답 코드: {response.status_code}")
+
+        # 스트리밍이면 response 객체 자체를 반환
+        if stream:
+            return response
+
+        logging.info(f"Meshy API 응답 데이터: {response.text}")  # ✅ 응답 내용 출력
         response.raise_for_status()
-        return response.json()
+
+        try:
+            return response.json()
+        except json.JSONDecodeError:
+            logging.error("응답 데이터가 JSON 형식이 아닙니다.")
+            return None
 
     except requests.exceptions.RequestException as e:
         logging.error(f"Meshy API 요청 실패: {e}")
