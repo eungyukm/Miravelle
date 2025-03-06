@@ -4,12 +4,26 @@ from django.contrib.auth.mixins import LoginRequiredMixin # 로그인한 사용�
 from .models import Article, Like
 from django.http import HttpResponseForbidden # error 403(서버에 요청은 갔지만, 권한 때문에 요청 거절)
 from .forms import ArticleForm
+from django.db import DatabaseError
 
 # 게시글 목록 보기
 class ArticleList(View):
     def get(self, request):
-        article_list = Article.objects.all()
-        context = {"article_list":article_list}
+        try:
+            article_list = Article.objects.all()
+
+            if not article_list.exists():
+                article_list = None
+
+        except DatabaseError as db_err:
+            print(f"Database error occurred: {db_err}")
+            article_list = None  # 데이터베이스 오류 시 None 설정
+
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
+            article_list = None  # 기타 예외 발생 시 None 설정
+
+        context = {"article_list": article_list}
         return render(request, "main.html", context)
     
 # 좋아요 게시물
