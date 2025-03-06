@@ -64,8 +64,8 @@ INSTALLED_APPS = [
     "utils", # 유틸리티 관련 테스팅 및 관리 앱
 
     # DRF & Swagger
-    "rest_framework",
-    "drf_yasg",
+    # "rest_framework",
+    # "drf_yasg",
 ]
 
 MIDDLEWARE = [
