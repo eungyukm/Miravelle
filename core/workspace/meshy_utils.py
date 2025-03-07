@@ -1,12 +1,13 @@
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # 현재 파일 경로 추가
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))  # 상위 폴더 추가
+
 import json
 import requests
-import os
 import logging
-from dotenv import load_dotenv
-
-# 환경 변수 로드
-load_dotenv()
-MESHY_API_KEY = os.getenv("MESHY_API_KEY")
+from utils.azure_key_manager import AzureKeyManager
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -18,7 +19,8 @@ def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None, str
     Meshy API 호출을 위한 유틸 함수 (디버깅 추가, SSE 스트림 처리)
     """
     api_url = f"https://api.meshy.ai{endpoint}"
-    headers = {"Authorization": f"Bearer {MESHY_API_KEY}"}
+    azure_keys = AzureKeyManager.get_instance()
+    headers = {"Authorization": f"Bearer {azure_keys.meshy_api_key}"}
 
     try:
         logging.info(f"API 요청 URL: {api_url}")
@@ -40,7 +42,7 @@ def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None, str
         if stream:
             return response
 
-        logging.info(f"Meshy API 응답 데이터: {response.text}")  # ✅ 응답 내용 출력
+        logging.info(f"Meshy API 응답 데이터: {response.text}")  # 응답 내용 출력
         response.raise_for_status()
 
         try:
