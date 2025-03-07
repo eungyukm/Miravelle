@@ -1,45 +1,54 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="login-main-container">
+    <div class="login-container d-flex justify-content-center align-items-center">
+        <div class="card p-4 shadow-lg" style="width: 350px;">
+            <h2 class="text-center mb-4">Login</h2>
 
-<div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card p-4 shadow-lg" style="width: 350px;">
-        <h2 class="text-center mb-4">Login</h2>
-        <form action="{% url 'users:login' %}" method="POST">
-            {% csrf_token %}
+            <form action="{% url 'users:login' %}" method="POST">
+                {% csrf_token %}
 
-            <!-- ID 입력 필드 -->
-            <div class="mb-3">
-                <label for="{{ form.username.id_for_label }}" class="form-label">ID</label>
-                <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
-                       class="form-control" placeholder="Enter your ID"
-                       value="{{ form.username.value|default:'' }}">
-                {% if form.username.errors %}
-                    <div class="text-danger small">
-                        {{ form.username.errors.0 }}
+                <!-- ID 입력 필드 -->
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">ID</label>
+                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+                        class="form-control" placeholder="Enter your ID"
+                        value="{{ form.username.value|default:'' }}">
+                    {% if form.username.errors %}
+                        <div class="text-danger small">
+                            {{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password 입력 필드 -->
+                <div class="mb-3">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                    <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+                        class="form-control" placeholder="Enter your password">
+                    {% if form.password.errors %}
+                        <div class="text-danger small">
+                            {{ form.password.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- messages 변수가 존재하면 -->
+                {% if messages %}  
+                {% for message in messages %} <!-- 메시지들을 순회하며 표시 -->
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }} <!-- 메시지 내용 출력 -->
                     </div>
-                {% endif %}
+                {% endfor %}
+            {% endif %}
+                <!-- 제출 버튼 -->
+                <button type="submit" class="btn btn-dark w-100">Submit</button>
+            </form>
+
+            <!-- 회원가입 링크 -->
+            <div class="text-center mt-3">
+                <a href="{% url 'users:register' %}" class="text-primary">Register</a>
             </div>
-
-            <!-- Password 입력 필드 -->
-            <div class="mb-3">
-                <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
-                       class="form-control" placeholder="Enter your password">
-                {% if form.password.errors %}
-                    <div class="text-danger small">
-                        {{ form.password.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- 제출 버튼 -->
-            <button type="submit" class="btn btn-dark w-100">Submit</button>
-        </form>
-
-        <!-- 회원가입 링크 -->
-        <div class="text-center mt-3">
-            <a href="{% url 'users:register' %}" class="text-primary">Register</a>
         </div>
     </div>
 </div>

@@ -1,10 +1,8 @@
 {% extends "register-base.html" %}
 
-{% load static %}
-
 {% block content %}
-<div class="main-container">
-    <div class="login-container">
+<div class="register-main-container">
+    <div class="register-container">
         <h2><center>Register</center></h2>
         <br>
         <form method="POST" action="{% url 'users:register' %}">
@@ -94,7 +92,7 @@
 </div>
 
 <style>
- /* Main Container */
+ {% comment %} /* Main Container */
     .main-container {
         display: flex;
         justify-content: center;
@@ -109,7 +107,7 @@
         background-color: #fff;
         border-radius: 20px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-    }
+    } {% endcomment %}
     /* 각 필드 입력칸 조절*/
     #id_username {
         width: 100%;
