@@ -24,9 +24,10 @@ urlpatterns = [
     path("users/", include("users.urls")),
     path("assets/", include("assets.urls")),
     path("workspace/", include("workspace.urls")),
+    # path("model_storage/", include("model_storage.urls")),
     path("article/", include("articles.urls")),
     path("threeworld/", include("threeworld.urls")),
-    # path("utils/", include("utils.urls")),
+    path("utils/", include("utils.urls")),
 
     # main page
     path("", include("articles.urls")),

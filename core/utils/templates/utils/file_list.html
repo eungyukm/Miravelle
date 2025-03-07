@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Azure Storage Files</h2>
+    <div id="file-list" class="row">
+        <!-- 여기에 파일 목록이 동적으로 로드됩니다 -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 파일 목록 가져오기
+    fetch('/utils/list_files_details/')
+        .then(response => response.json())
+        .then(data => {
+            const fileList = document.getElementById('file-list');
+            data.files.forEach(file => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 mb-4';
+                
+                let content = '';
+                if (file.is_image) {
+                    content = `
+                        <div class="card">
+                            <img src="${file.url}" class="card-img-top" alt="${file.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${file.name}</h5>
+                                <p class="card-text">Container: ${file.container}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content = `
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${file.name}</h5>
+                                <p class="card-text">Container: ${file.container}</p>
+                                <a href="/utils/download/${file.container}/${file.name}" class="btn btn-primary">Download</a>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                col.innerHTML = content;
+                fileList.appendChild(col);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+});
+</script>
+{% endblock %} 

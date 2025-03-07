@@ -1,111 +1,173 @@
-# from azure.storage.blob import BlobServiceClient
-# from azure.identity import DefaultAzureCredential
-# from azure.keyvault.secrets import SecretClient
+from azure.storage.blob import BlobServiceClient
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+import os
+from django.conf import settings
 
-# # Key Vault 설정
-# key_vault_name = "miravelle-key"
-# key_vault_uri = f"https://{key_vault_name}.vault.azure.net/"
+class AzureStorageClient:
+    def __init__(self):
+        """Azure Storage 클라이언트 초기화"""
+        # 개발 환경(로컬 서버)에서는 환경 변수 사용 ====================
+        if settings.DEBUG:
+            self.storage_account = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
+            self.storage_key = os.getenv('AZURE_STORAGE_ACCOUNT_KEY')
+            self.container_name = os.getenv('AZURE_CONTAINER_NAME')
+            self.connection_string = os.getenv('AZURE_CONNECTION_STRING')
+        # ==================== 개발 환경 분기점 끝 ====================
+        else:
+            # Key Vault 설정 (배포 서버 프로덕션 환경)
+            key_vault_name = "miravelle-key"
+            key_vault_uri = f"https://{key_vault_name}.vault.azure.net/"
+            credential = DefaultAzureCredential()
+            client = SecretClient(vault_url=key_vault_uri, credential=credential)
+            
+            self.storage_account = client.get_secret("azure-storage-account-name").value
+            self.storage_key = client.get_secret("azure-storage-account-key").value
+            self.container_name = client.get_secret("azure-container-name").value
+            self.connection_string = client.get_secret("azure-connection-string").value
+        
+        self.blob_service_client = BlobServiceClient(
+            f"https://{self.storage_account}.blob.core.windows.net",
+            credential=self.storage_key
+        )
+        self.container_client = self.blob_service_client.get_container_client(self.container_name)
 
-# # 인증 설정
-# credential = DefaultAzureCredential()
-# client = SecretClient(vault_url=key_vault_uri, credential=credential)
+    def list_files(self):
+        """컨테이너 내 모든 파일 목록 조회"""
+        try:
+            return [blob.name for blob in self.container_client.list_blobs()]
+        except Exception as e:
+            print(f"파일 목록 조회 실패: {str(e)}")
+            return []
 
-# storage_account_name = "azure-storage-account-name"
-# storage_account_value = client.get_secret(storage_account_name).value
+    def upload_file(self, local_path, blob_name):
+        """파일 업로드"""
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            with open(local_path, "rb") as data:
+                blob_client.upload_blob(data, overwrite=True)
+            return f"https://{self.storage_account}.blob.core.windows.net/{self.container_name}/{blob_name}"
+        except Exception as e:
+            print(f"파일 업로드 실패: {str(e)}")
+            return None
 
-# storage_account_key = "azure-storage-account-key"
-# storage_account_key_value = client.get_secret(storage_account_key).value
+    def download_file(self, blob_name, local_path):
+        """파일 다운로드"""
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            with open(local_path, "wb") as file:
+                file.write(blob_client.download_blob().readall())
+            return True
+        except Exception as e:
+            print(f"파일 다운로드 실패: {str(e)}")
+            return False
 
-# container_name = "azure-container-name"
-# container_name_value = client.get_secret(container_name).value
+    def delete_file(self, blob_name):
+        """파일 삭제"""
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            blob_client.delete_blob()
+            return True
+        except Exception as e:
+            print(f"파일 삭제 실패: {str(e)}")
+            return False
 
-# connection_string = "azure-connection-string"
-# connection_string_value = client.get_secret(connection_string).value
+    def file_exists(self, blob_name):
+        """파일 존재 여부 확인"""
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            return blob_client.exists()
+        except Exception as e:
+            print(f"파일 존재 여부 확인 실패: {str(e)}")
+            return False
 
-# meshy_api_key = "mehsy-api-key"
-# meshy_api_key_value = client.get_secret(meshy_api_key).value
+    def list_containers(self):
+        """모든 컨테이너 목록 조회"""
+        try:
+            return list(self.blob_service_client.list_containers())
+        except Exception as e:
+            print(f"컨테이너 목록 조회 실패: {str(e)}")
+            return []
 
-# # Blob Service Client 설정
-# blob_service_client = BlobServiceClient(
-#     f"https://{storage_account_value}.blob.core.windows.net",
-#     credential=storage_account_key_value
-# )
+    def list_blobs(self, container_name):
+        """특정 컨테이너의 모든 blob 목록 조회"""
+        try:
+            container_client = self.blob_service_client.get_container_client(container_name)
+            return list(container_client.list_blobs())
+        except Exception as e:
+            print(f"Blob 목록 조회 실패: {str(e)}")
+            return []
 
+    def get_blob_url(self, container_name, blob_name):
+        """Blob의 URL 생성"""
+        try:
+            return f"https://{self.storage_account}.blob.core.windows.net/{container_name}/{blob_name}"
+        except Exception as e:
+            print(f"Blob URL 생성 실패: {str(e)}")
+            return None
 
-# def upload_fbx_to_azure(file_path, blob_name):
-#     """Azure Blob Storage에 FBX 파일 업로드"""
-#     try:
-#         blob_client = blob_service_client.get_blob_client(container=connection_string_value, blob=blob_name)
+    def download_blob(self, container_name, blob_name):
+        """Blob 다운로드"""
+        try:
+            blob_client = self.blob_service_client.get_container_client(container_name).get_blob_client(blob_name)
+            return blob_client.download_blob()
+        except Exception as e:
+            print(f"Blob 다운로드 실패: {str(e)}")
+            raise
 
-#         with open(file_path, "rb") as data:
-#             blob_client.upload_blob(data, overwrite=True)
+    def upload_fbx(self, file_path, blob_name):
+        """FBX 파일 업로드"""
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            with open(file_path, "rb") as data:
+                blob_client.upload_blob(data, overwrite=True)
+            return f"업로드 성공: {blob_name}"
+        except Exception as e:
+            return f"업로드 실패: {str(e)}"
 
-#         return f"업로드 성공: {blob_name}"
-#     except Exception as e:
-#         return f"업로드 실패: {str(e)}"
+    def get_files_details(self):
+        """모든 컨테이너와 파일의 상세 정보를 가져오는 메서드
+        
+        Returns:
+            list: 각 파일의 상세 정보를 담은 딕셔너리 리스트
+            - name: 파일 이름
+            - container: 컨테이너 이름
+            - size: 파일 크기
+            - content_type: 파일 타입
+            - url: 파일 접근 URL
+            - is_image: 이미지 파일 여부
+        """
+        try:
+            files = []
+            containers = self.list_containers()
+            
+            for container in containers:
+                blobs = self.list_blobs(container.name)
+                for blob in blobs:
+                    file_info = {
+                        'name': blob.name,
+                        'container': container.name,
+                        'size': blob.size,
+                        'content_type': blob.content_settings.content_type,
+                        'url': self.get_blob_url(container.name, blob.name),
+                        'is_image': blob.content_settings.content_type.startswith('image/') if blob.content_settings.content_type else False
+                    }
+                    files.append(file_info)
+            
+            return files
+        except Exception as e:
+            print(f"파일 상세 정보 조회 실패: {str(e)}")
+            return []
 
+    def download_fbx(self, blob_name, local_file_path):
+        """FBX 파일 다운로드"""
+        try:
+            if not self.connection_string:
+                raise ValueError("connection_string이 설정되지 않았습니다.")
 
-# def download_fbx_from_azure(blob_name, local_file_path):
-#     """Azure Blob Storage에서 FBX 파일 다운로드"""
-#     try:
-#         if not connection_string_value:
-#             raise ValueError("AZURE_CONNECTION_STRING is not set in environment variables")
-
-#         blob_service_client = BlobServiceClient.from_connection_string(connection_string_value)
-#         blob_client = blob_service_client.get_blob_client(container=container_name_value, blob=blob_name)
-
-#         with open(local_file_path, "wb") as file:
-#             file.write(blob_client.download_blob().readall())
-
-#         return f"Download successful: {local_file_path}"
-
-#     except Exception as e:
-#         return f"Download failed: {str(e)}"
-
-
-# def list_blobs():
-#     """Azure Blob Storage에서 컨테이너 내 모든 파일 목록 조회"""
-#     try:
-#         container_client = blob_service_client.get_container_client(container_name_value)
-#         blobs = [blob.name for blob in container_client.list_blobs()]
-
-#         print("Azure Blob Storage에 있는 파일 목록:")
-#         for blob in blobs:
-#             print(blob)
-
-#         return blobs
-#     except Exception as e:
-#         print(f"Azure Blob 목록 조회 실패: {str(e)}")
-#         return []
-
-
-# def file_exists(blob_name):
-#     """Azure Blob Storage에서 특정 파일 존재 여부 확인"""
-#     return blob_name in list_blobs()
-
-
-# def upload_file(local_path, blob_name):
-#     """로컬 파일을 Azure Blob Storage에 업로드"""
-#     try:
-#         blob_client = blob_service_client.get_blob_client(container=container_name_value, blob=blob_name)
-#         with open(local_path, "rb") as data:
-#             blob_client.upload_blob(data, overwrite=True)
-
-#         file_url = f"https://{storage_account_key_value}.blob.core.windows.net/{container_name_value}/{blob_name}"
-#         print(f"{blob_name} 파일이 Azure Blob Storage에 업로드되었습니다!")
-#         return file_url
-#     except Exception as e:
-#         print(f"파일 업로드 실패: {str(e)}")
-#         return None
-
-
-# def delete_file(blob_name):
-#     """Azure Blob Storage에서 특정 파일 삭제"""
-#     try:
-#         blob_client = blob_service_client.get_blob_client(container=container_name_value, blob=blob_name)
-#         blob_client.delete_blob()
-#         print(f"{blob_name} 파일이 Azure Blob Storage에서 삭제되었습니다.")
-#         return True
-#     except Exception as e:
-#         print(f"파일 삭제 실패: {str(e)}")
-#         return False
+            blob_client = self.container_client.get_blob_client(blob_name)
+            with open(local_file_path, "wb") as file:
+                file.write(blob_client.download_blob().readall())
+            return f"다운로드 성공: {local_file_path}"
+        except Exception as e:
+            return f"다운로드 실패: {str(e)}"
