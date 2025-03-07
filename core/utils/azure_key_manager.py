@@ -44,7 +44,7 @@ class AzureKeyManager:
             return None
 
     @classmethod
-    def get(cls):
+    def get_instance(cls):
         """싱글톤 인스턴스 반환"""
         return cls()
 
