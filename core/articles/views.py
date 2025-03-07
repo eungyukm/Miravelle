@@ -66,12 +66,14 @@ class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
             
         except Like.DoesNotExist:
             # 좋아요/싫어요를 처음 누른 경우
+            print(request.path)
             Like.objects.create(user=user, article=article, like_type=like_type)
             if like_type == "❤️":
                 article.like_count += 1
             else:
                 article.dislike_count += 1
             article.save()
+            
         return redirect("articles:main") # 상세 페이지로 리다이렉션
     
     
