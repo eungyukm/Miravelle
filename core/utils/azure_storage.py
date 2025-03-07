@@ -1,4 +1,4 @@
-# from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient
 # from azure.identity import DefaultAzureCredential
 # from azure.keyvault.secrets import SecretClient
 
