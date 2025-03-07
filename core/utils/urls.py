@@ -10,5 +10,5 @@ from .views import list_files_view
 # ]
 
 urlpatterns = [
-    
+    path('list_files/', list_files_view, name='list_files'),
 ]

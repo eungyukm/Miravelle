@@ -66,7 +66,7 @@ def download_fbx_from_azure(blob_name, local_file_path):
 def list_blobs():
     """Azure Blob Storage에서 컨테이너 내 모든 파일 목록 조회"""
     try:
-        container_client = blob_service_client.get_container_client(container_name_value)
+        container_client = blob_service_client.get_container_client("container_name_value")
         blobs = [blob.name for blob in container_client.list_blobs()]
 
         print("Azure Blob Storage에 있는 파일 목록:")
