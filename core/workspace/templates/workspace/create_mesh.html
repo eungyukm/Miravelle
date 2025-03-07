@@ -5,13 +5,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create a 3D Model</title>
-    <link rel="stylesheet" href="{% static 'css/create_mesh.css' %}">
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            width: 0;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+
+        #thumbnail {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
+
+        #video {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Create a 3D Model</h2>
 
-        <!-- 모델 생성 폼 -->
         <form id="meshForm">
             {% csrf_token %}
             <label for="prompt">Prompt:</label>
@@ -32,14 +71,12 @@
 
         <p id="error-message" class="error"></p>
 
-        <!-- 진행률 표시 -->
         <div id="statusSection" class="hidden">
             <div class="progress-bar">
                 <div id="progressBar">0%</div>
             </div>
         </div>
 
-        <!-- 결과 출력 (썸네일 & 비디오) -->
         <div id="previewSection" class="hidden">
             <img id="thumbnail" alt="3D Model Thumbnail">
             <video id="video" controls>
@@ -49,6 +86,84 @@
         </div>
     </div>
 
-    <script src="{% static 'js/create_mesh.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("meshForm");
+            const generateBtn = document.getElementById("generateBtn");
+            const loadingSpinner = document.getElementById("loadingSpinner");
+            const statusSection = document.getElementById("statusSection");
+            const progressBar = document.getElementById("progressBar");
+            const previewSection = document.getElementById("previewSection");
+            const thumbnail = document.getElementById("thumbnail");
+            const video = document.getElementById("video");
+            const videoSource = document.getElementById("videoSource");
+            const errorMessage = document.getElementById("error-message");
+    
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                errorMessage.textContent = "";
+                loadingSpinner.classList.remove("hidden");
+                statusSection.classList.remove("hidden");
+                previewSection.classList.add("hidden");
+                progressBar.style.width = "0%";
+                progressBar.textContent = "0%";
+    
+                const formData = new FormData(form);
+    
+                try {
+                    const response = await fetch("/generate-mesh/", {
+                        method: "POST",
+                        body: formData,
+                        headers: {
+                            "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+                        }
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error("Failed to generate the model.");
+                    }
+    
+                    const data = await response.json();
+                    trackProgress(data.task_id);
+                } catch (error) {
+                    errorMessage.textContent = error.message;
+                    loadingSpinner.classList.add("hidden");
+                    statusSection.classList.add("hidden");
+                }
+            });
+    
+            async function trackProgress(taskId) {
+                let completed = false;
+                while (!completed) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const response = await fetch(`/task-status/${taskId}/`);
+                    const data = await response.json();
+    
+                    if (data.status === "PROGRESS") {
+                        progressBar.style.width = `${data.progress}%`;
+                        progressBar.textContent = `${data.progress}%`;
+                    } else if (data.status === "COMPLETED") {
+                        completed = true;
+                        displayResult(data);
+                    } else if (data.status === "FAILED") {
+                        completed = true;
+                        errorMessage.textContent = "Model generation failed.";
+                        loadingSpinner.classList.add("hidden");
+                        statusSection.classList.add("hidden");
+                    }
+                }
+            }
+    
+            function displayResult(data) {
+                loadingSpinner.classList.add("hidden");
+                statusSection.classList.add("hidden");
+                previewSection.classList.remove("hidden");
+                
+                thumbnail.src = data.thumbnail_url;
+                videoSource.src = data.video_url;
+                video.load();
+            }
+        });
+    </script>
 </body>
 </html>
