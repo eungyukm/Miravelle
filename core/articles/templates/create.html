@@ -1,11 +1,8 @@
-{# create.html #}
 {% extends "base.html" %}
-
-{% load static %}
 
 {% block content %}
 <div class="container">
-    <h1>게시물 작성</h1>
+    <h1>Create Article</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}  {# 폼 필드를 단락으로 표시 #}

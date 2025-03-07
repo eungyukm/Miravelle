@@ -4,6 +4,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
 from django.urls import reverse
+from django.contrib import messages
 
 
 # 회원가입
@@ -29,7 +30,9 @@ def login(request):
             # Log the user in
             auth_login(request, form.get_user())   # 로그인 하기
             return redirect("articles:main")
-    
+        else:
+            # 유효하지 않을 경우, 오류 메시지 추가
+            messages.error(request, "Invalid ID or Password.")
     else:    
         form = CustomAuthenticationForm()  # CustomAuthenticationForm 사용
     context = {"form": form}
