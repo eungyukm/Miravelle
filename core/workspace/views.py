@@ -5,7 +5,12 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from .models import MeshModel
+
+import threading
+
+# utils
 from .meshy_utils import call_meshy_api  # Meshy API 호출 함수
+from .azure_utils import AzureBlobUploader
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -60,6 +65,14 @@ def stream_mesh_progress(request, mesh_id):
 
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
+def upload_blob_in_thread(response: dict):    
+    """Azure Blob Storage 업로드를 백그라운드에서 실행"""
+    def upload_task():
+        uploader = AzureBlobUploader()
+        uploader.upload_meshy_assets(response)
+
+    thread = threading.Thread(target=upload_task)
+    thread.start()
 
 @login_required
 def get_mesh(request, mesh_id):
@@ -75,12 +88,14 @@ def get_mesh(request, mesh_id):
     video_url = response_data.get("video_url")
 
     # DB에 저장 (없을 경우만)
-    if thumbnail_url and not mesh.image_url:
-        mesh.image_url = thumbnail_url
-    if video_url and not mesh.video_url:
-        mesh.video_url = video_url
-    mesh.status = "completed"
-    mesh.save()
+    # if thumbnail_url and not mesh.image_url:
+    #     mesh.image_url = thumbnail_url
+    # if video_url and not mesh.video_url:
+    #     mesh.video_url = video_url
+    # mesh.status = "completed"
+    # mesh.save()
+
+    upload_blob_in_thread(response_data)
 
     return JsonResponse({
         "job_id": mesh.job_id,

@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 
 # meshy_utils.py 수정 (SSE 스트림 처리 추가 및 디버깅 유지)
-def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None, stream: bool = False):
+def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None, stream: bool = False) -> dict:
     """
     Meshy API 호출을 위한 유틸 함수 (디버깅 추가, SSE 스트림 처리)
     """
