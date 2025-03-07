@@ -26,6 +26,9 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# 로컬 환경인지 배포 환경인지 체크
+IS_LOCAL_ENV = True
+
 # CSRF 설정
 CSRF_TRUSTED_ORIGINS = [
     'https://miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net'
