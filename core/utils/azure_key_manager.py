@@ -32,12 +32,13 @@ class AzureKeyManager:
         self.storage_account_key = self._get_secret("azure-storage-account-key")
         self.container_name = self._get_secret("azure-container-name")
         self.connection_string = self._get_secret("azure-connection-string")
-        self.meshy_api_key = self._get_secret("mehsy-api-key")
+        self.meshy_api_key = self._get_secret("mehsy-api-key", strip=True)
 
-    def _get_secret(self, secret_name):
+    def _get_secret(self, secret_name, strip=False):
         """Key Vault에서 Secret을 안전하게 가져오는 메서드"""
         try:
-            return self.client.get_secret(secret_name).value
+            secret_value = self.client.get_secret(secret_name).value
+            return secret_value.strip() if strip else secret_value
         except Exception as e:
             print(f"Error fetching secret '{secret_name}': {e}")
             return None
