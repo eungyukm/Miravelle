@@ -23,9 +23,7 @@ class AzureKeyManager:
 
     def _initialize(self):
         """로컬 또는 배포 환경에 맞는 Secret을 가져와 저장"""
-        self.env = settings.IS_LOCAL_ENV
-        
-        if self.env == "production":
+        if settings.IS_LOCAL_ENV == False:
             self._load_from_azure_key_vault()
         else:
             self._load_from_env_file()
