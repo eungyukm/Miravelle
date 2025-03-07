@@ -19,7 +19,7 @@ def call_meshy_api(endpoint: str, method: str = "GET", payload: dict = None, str
     Meshy API 호출을 위한 유틸 함수 (디버깅 추가, SSE 스트림 처리)
     """
     api_url = f"https://api.meshy.ai{endpoint}"
-    azure_keys = AzureKeyManager.get_instance()
+    azure_keys = AzureKeyManager.get()
     headers = {"Authorization": f"Bearer {azure_keys.meshy_api_key}"}
 
     try:
