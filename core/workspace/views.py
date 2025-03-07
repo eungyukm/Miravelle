@@ -5,21 +5,21 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from .models import MeshModel
-from .meshy_utils import call_meshy_api  # ✅ Meshy API 호출 함수
+from .meshy_utils import call_meshy_api  # Meshy API 호출 함수
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 @login_required
 def create_mesh_page(request):
-    """🔹 3D 모델 생성 페이지 렌더링"""
+    """3D 모델 생성 페이지 렌더링"""
     return render(request, "workspace/create_mesh.html")
 
 
 @csrf_exempt
 @login_required
 def generate_mesh(request):
-    """🔹 Mesh 생성 요청 & job_id 반환"""
+    """Mesh 생성 요청 & job_id 반환"""
     if request.method != "POST":
         return JsonResponse({"error": "Invalid method"}, status=405)
 
@@ -44,7 +44,7 @@ def generate_mesh(request):
 
 @login_required
 def stream_mesh_progress(request, mesh_id):
-    """🔹 진행률 SSE(서버 전송 이벤트) 스트리밍"""
+    """진행률 SSE(서버 전송 이벤트) 스트리밍"""
     def event_stream():
         response = call_meshy_api(f"/openapi/v2/text-to-3d/{mesh_id}/stream", stream=True)
         if not response:
@@ -63,18 +63,18 @@ def stream_mesh_progress(request, mesh_id):
 
 @login_required
 def get_mesh(request, mesh_id):
-    """🔹 진행률 100% 후 썸네일 & 비디오 URL 반환"""
+    """진행률 100% 후 썸네일 & 비디오 URL 반환"""
     mesh = get_object_or_404(MeshModel, job_id=mesh_id)
     response_data = call_meshy_api(f"/openapi/v2/text-to-3d/{mesh_id}")
 
     if not response_data:
         return JsonResponse({"error": "Mesh 정보를 가져올 수 없습니다."}, status=400)
 
-    # ✅ API 응답에서 썸네일 & 비디오 URL 추출
+    # API 응답에서 썸네일 & 비디오 URL 추출
     thumbnail_url = response_data.get("thumbnail_url")
     video_url = response_data.get("video_url")
 
-    # ✅ DB에 저장 (없을 경우만)
+    # DB에 저장 (없을 경우만)
     if thumbnail_url and not mesh.image_url:
         mesh.image_url = thumbnail_url
     if video_url and not mesh.video_url:
