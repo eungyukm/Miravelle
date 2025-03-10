@@ -65,11 +65,11 @@ def stream_mesh_progress(request, mesh_id):
 
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
-def upload_blob_in_thread(response: dict):    
+def upload_blob_in_thread(request, response: dict):    
     """Azure Blob Storage 업로드를 백그라운드에서 실행"""
     def upload_task():
         uploader = AzureBlobUploader()
-        uploader.upload_meshy_assets(response)
+        uploader.upload_meshy_assets(request, response)  # request 추가
 
     thread = threading.Thread(target=upload_task)
     thread.start()
@@ -95,7 +95,7 @@ def get_mesh(request, mesh_id):
     # mesh.status = "completed"
     # mesh.save()
 
-    upload_blob_in_thread(response_data)
+    upload_blob_in_thread(request, response_data)
 
     return JsonResponse({
         "job_id": mesh.job_id,

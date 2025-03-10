@@ -27,8 +27,10 @@ def login(request):
     if request.method == "POST":
         form = CustomAuthenticationForm(data=request.POST) # CustomAuthenticationForm 사용
         if form.is_valid():
+            user = form.get_user()
             # Log the user in
             auth_login(request, form.get_user())   # 로그인 하기
+            request.session['user_id'] = user.id  # 세션에 user.id 저장
             return redirect("articles:main")
         else:
             # 유효하지 않을 경우, 오류 메시지 추가
@@ -42,5 +44,8 @@ def login(request):
 # 로그아웃
 @login_required
 def logout(request):
+    if 'user_id' in request.session:
+        del request.session['user_id']  # 세션에서 user_id 삭제
+        
     auth_logout(request)    # 로그아웃 하기
     return redirect("articles:main")
