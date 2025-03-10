@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 
-{% load static %}
-
 {% block content %}
 <div class="container">
     <h1>{{ article.title}}'s Detail</h1>
     
     <div class="card">
-        <img src="{{ article.image.url }}" class="card-img-top" style="max-width: 50%; max-height: 50%; object-fit: contain;">
+        <img src="{{ article.image.url }}" class="card-img-top" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         <div class="card-body">
             <h5 class="card-title">{{ article.title }}</h5>
             <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" style="display: inline-block; margin-right: 15px;">
@@ -26,7 +24,7 @@
             <p class="card-text"><strong>Model seed :</strong> {{ article.model_seed }}</p>
             <p class="card-text"><strong>Created date :</strong> {{ article.created_at }}</p>
             
-            <a href="{% url 'articles:main' %}" class="btn btn-primary">Back to Main</a>
+            <a href="{% url 'articles:main' %}" class="btn btn-dark">Back to Main</a>
         </div>
     </div>
 </div>

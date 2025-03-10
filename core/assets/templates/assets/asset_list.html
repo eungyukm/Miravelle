@@ -30,143 +30,135 @@
 -->
 
 {% block content %}
-<!-- 메인 컨테이너 -->
-<div class="container py-5">
-    <!-- 페이지 제목 섹션 -->
-    <div class="row mb-4">
-        <div class="col d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class="text-dark mb-0">My 3D Assets</h2>
-                <p class="text-muted mb-0">내가 생성한 3D 모델링 에셋 목록입니다.</p>
-            </div>
-            <a href="{% url 'assets:asset_create' %}" class="btn btn-outline-dark">
-                <i class="bi bi-plus-lg"></i> 새 에셋 생성
-            </a>
-        </div>
-    </div>
+<div class="container py-4">
+    <!-- 페이지 제목 -->
+    <h1 class="mb-1">My 3D Assets</h1>
+    <p class="text-muted mb-5">내가 생성한 3D 모델링 에셋 목록입니다.</p>
 
-    <!-- 에셋 그리드 섹션 -->
+    <!-- 메시 생성 에셋 -->
     <div class="row g-4">
-        {% for asset in assets %}
-        <!-- 각 에셋 카드 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <!-- 에셋 썸네일 영역 -->
-                <div class="card-img-top position-relative">
-                    {% if asset.thumbnail %}
-                        <div style="aspect-ratio: 16/9; overflow: hidden;">
-                            <img src="{{ asset.thumbnail.url }}" 
-                                 class="w-100 h-100 object-fit-contain bg-light" 
-                                 alt="{{ asset.title }}">
-                        </div>
-                    {% else %}
-                        <!-- 썸네일이 없을 경우 대체 이미지 -->
-                        <div style="aspect-ratio: 16/9;" class="bg-light d-flex align-items-center justify-content-center">
-                            <span class="text-muted">No Preview</span>
-                        </div>
-                    {% endif %}
-                </div>
+        {% for task in meshy_tasks %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0">
+                {% if task.thumbnail %}
+                <img src="{{ task.thumbnail }}" 
+                     class="card-img-top" 
+                     alt="{{ task.name }}"
+                     style="height: 200px; object-fit: cover;">
+                {% endif %}
                 
-                <!-- 에셋 정보 영역 -->
-                <div class="card-body">
-                    <h5 class="card-title text-dark">{{ asset.title }}</h5>
-                    <p class="card-text text-muted small mb-2">
-                        생성일: {{ asset.created_at|date:"Y.m.d" }}
-                    </p>
-                    {% if asset.content %}
-                        <p class="card-text">{{ asset.content|truncatechars:100 }}</p>
+                <div class="card-body px-0 pt-3 pb-4">
+                    <h2 class="h5 mb-1">{{ task.name }}</h2>
+                    <p class="text-muted small">생성일: {{ task.created_at|date:"Y.m.d" }}</p>
+                    {% if task.status %}
+                    <p class="text-muted small">{{ task.status }}</p>
                     {% endif %}
-                </div>
-
-                <!-- 액션 버튼 영역 -->
-                <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
-                    <button onclick="showDeleteModal('{{ asset.id }}')" 
-                            class="btn btn-outline-dark btn-sm">
-                        <i class="bi bi-trash"></i> 삭제
-                    </button>
+                    
+                    <div class="mt-2">
+                        {% if task.mesh_url %}
+                        <a href="{{ task.mesh_url }}" 
+                           class="btn btn-sm btn-outline-dark me-2" 
+                           download>
+                            다운로드
+                        </a>
+                        {% endif %}
+                        
+                        <button onclick="previewModel('{{ task.task_id }}')" 
+                                class="btn btn-sm btn-outline-dark">
+                            삭제
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <!-- 에셋이 없을 경우 표시될 메시지 -->
-        <div class="col-12 text-center py-5">
-            <div class="py-5">
-                <h4 class="text-muted mb-4">아직 생성된 에셋이 없습니다</h4>
+        <div class="col-12">
+            <p class="text-muted">메시 생성 에셋이 없습니다.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 업로드된 에셋 -->
+    <h2 class="h4 mt-5 mb-4">업로드된 에셋</h2>
+    <div class="row g-4">
+        {% for asset in assets %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0">
+                {% if asset.thumbnail %}
+                <img src="{{ asset.thumbnail.url }}" 
+                     class="card-img-top" 
+                     alt="{{ asset.title }}"
+                     style="height: 200px; object-fit: cover;">
+                {% endif %}
+                
+                <div class="card-body px-0 pt-3 pb-4">
+                    <h3 class="h5 mb-1">{{ asset.title }}</h3>
+                    <p class="text-muted small">업로드: {{ asset.created_at|date:"Y.m.d" }}</p>
+                    
+                    <div class="mt-2">
+                        <button onclick="deleteAsset('{{ asset.id }}')" 
+                                class="btn btn-sm btn-outline-dark me-2">
+                            삭제
+                        </button>
+                        
+                        <a href="{{ asset.file_path }}" 
+                           class="btn btn-sm btn-outline-dark">
+                            다운로드
+                        </a>
+                    </div>
+                </div>
             </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted">업로드된 에셋이 없습니다.</p>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- 삭제 확인 모달 -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">에셋 삭제</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>정말로 이 에셋을 삭제하시겠습니까?</p>
-                <p class="text-danger">이 작업은 되돌릴 수 없습니다.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-outline-dark btn-sm" onclick="confirmDelete()">삭제</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-    let assetIdToDelete = null;
-    
-    function showDeleteModal(assetId) {
-        assetIdToDelete = assetId;
-        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
-    }
-    
-    async function confirmDelete() {
-        if (!assetIdToDelete) return;
-        
-        try {
-            const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`/assets/${assetIdToDelete}/delete/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin'  // 쿠키를 포함하여 요청
-            });
-            
-            if (response.ok) {
-                // 성공 시 페이지 새로고침
+function previewModel(taskId) {
+    // TODO: 3D 모델 미리보기 구현
+    console.log('Preview model:', taskId);
+}
+
+function deleteAsset(assetId) {
+    if (confirm('정말 이 에셋을 삭제하시겠습니까?')) {
+        fetch(`/assets/${assetId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.asset_id) {
                 window.location.reload();
             } else {
-                const data = await response.json();
-                alert(data.error || '삭제 중 오류가 발생했습니다.');
+                alert('삭제 중 오류가 발생했습니다.');
             }
-        } catch (error) {
+        })
+        .catch(error => {
             console.error('Error:', error);
             alert('삭제 중 오류가 발생했습니다.');
-        }
+        });
     }
-    
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
+    return cookieValue;
+}
 </script>
 {% endblock %} 

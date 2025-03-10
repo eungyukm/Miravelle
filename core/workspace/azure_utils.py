@@ -1,97 +1,70 @@
-from azure.storage.blob import BlobServiceClient
+import sys
 import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # 현재 파일 경로 추가
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))  # 상위 폴더 추가
+
+import sys
+import os
+import json
 import requests
-from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
+from utils.azure_key_manager import AzureKeyManager
 
+class AzureBlobUploader:
+    """Azure Blob Storage에 파일을 업로드하는 클래스"""
 
-# 개발 환경에서만 .env 로드
-load_dotenv()
-    
-# Storage Account Name과 Key 직접 사용
-AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
-AZURE_CONNECTION_STRING = os.getenv("AZURE_CONNECTION_STRING")
+    def __init__(self, container_name="meshy-3d-assets"):
+        """Azure Blob Storage 연결 초기화"""
+        azure_keys = AzureKeyManager.get_instance()
+        self.connection_string = azure_keys.connection_string
+        self.container_name = container_name
 
-# Blob Service Client 수동 설정
-blob_service_client = BlobServiceClient(
-    f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
-    credential=AZURE_STORAGE_ACCOUNT_KEY
-)
+        # Azure Blob Service Client 설정
+        self.blob_service_client = BlobServiceClient.from_connection_string(self.connection_string)
+        self.container_client = self.blob_service_client.get_container_client(self.container_name)
 
-def download_file_from_url(file_url: str, temp_filename: str) -> str:
-    try:
-        response = requests.get(file_url, stream=True)
-        if response.status_code != 200:
-            return None
-        
-        with open(temp_filename, "wb") as temp_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                temp_file.write(chunk)
+        # 컨테이너 존재 여부 확인 및 생성
+        self._create_container()
 
-        return temp_filename
-    except Exception as e:
-        return None
+    def _create_container(self):
+        """컨테이너가 존재하지 않으면 생성"""
+        try:
+            self.container_client.create_container()
+            print(f"Created container: {self.container_name}")
+        except Exception:
+            print(f"Container '{self.container_name}' already exists")
 
-def upload_file_to_azure(file_url: str, task_id: str, file_type: str, file_name: str) -> str:
-    try:
-        temp_file_path = None
+    def upload_blob(self, task_id: str, blob_path: str, url: str):
+        """Azure Blob Storage에 파일 업로드"""
+        full_blob_path = f"tasks/{task_id}/{blob_path}"  # 경로 설정
 
-        # download
-        if file_url.startswith("http://") or file_url.startswith("https://"):
-            temp_file_path = f"temp_{file_name}"
-            downloaded_path = download_file_from_url(file_url, temp_file_path)
-            if not downloaded_path:
-                return f"download error: {file_url}!"
-            file_url = downloaded_path
+        try:
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
 
-        # azure save
-        blob_path = f"{task_id}/{file_type}/{file_name}"
-        print(blob_path)
-        blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_path)
+            blob_client = self.container_client.get_blob_client(full_blob_path)
+            blob_client.upload_blob(response.content, overwrite=True)
+            print(f"Uploaded: {full_blob_path}")
 
-        with open(file_url, "rb") as data:
-            blob_client.upload_blob(data, overwrite=True)
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to upload {full_blob_path}: {e}")
 
-            blob_url = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_path}"
+    def upload_meshy_assets(self, meshy_response: dict):
+        """Meshy API 응답 데이터를 기반으로 파일 업로드"""
+        task_id = meshy_response["id"]
 
-            # remove temp
-            if temp_file_path and os.path.exists(temp_file_path):
-                os.remove(temp_file_path)
+        # 모델 파일 업로드
+        for model_format, url in meshy_response.get("model_urls", {}).items():
+            self.upload_blob(task_id, f"models/model.{model_format}", url)
 
-        return blob_url
-    except Exception as e:
-        return f"upload failed: {str(e)}!"
-    
-# thumbnail_url = "https://assets.meshy.ai/c9103216-ab25-47b6-ad99-a594f1faa190/tasks/019560fe-4ff3-7277-8561-ddeb101d0f16/output/preview.png?Expires=4894646400&Signature=n1h7QNidmpvQfJfL2vGrY7FVrGPlO3GuhlyhCnadYggB32el~89zEQ04lql7pm13w2waMj6eyp0XKcbpPGA0ETe4Q~CC50bUJ1R2QMFR6a~vfxBdyt~3suST28I30ijU~BUU3mdZkMi2A8zfNc5YdoPrGvNBxswRT0b-yvsYfO9ydGNC7zukc6nO1ef7l~26LmDE7vni6N6cQs7laFUBArgsfSz6vk877dmDWHjbNCusPTp0ODxI6fzhgGz1PN9pZ0optZ9qLe2K9bqwf7XrRYptKmOGed6NwgDn4qfAtc5ld0OmV~S3so3Ng5l2a7OPKH-Yfm1ux27fHAy4-oiRgA__&Key-Pair-Id=KL5I0C8H7HX83"
-# upload_file_to_azure(thumbnail_url, "123141", "thumbnail", "test.png")
+        # 썸네일 업로드
+        self.upload_blob(task_id, "previews/preview.png", meshy_response.get("thumbnail_url", ""))
 
+        # 비디오 업로드
+        self.upload_blob(task_id, "videos/output.mp4", meshy_response.get("video_url", ""))
 
-def upload_mesh_assets(mesh):
-    """
-    Meshy API에서 받은 URL을 Azure로 업로드하고 MeshModel 필드 업데이트
-    :param mesh: MeshModel 인스턴스
-    """
-    updated = False
-
-    if mesh.image_url and not mesh.image_path:
-        image_blob_url = upload_file_to_azure(mesh.image_url, mesh.job_id, "images", f"{mesh.job_id}.png")
-        if "upload failed" not in image_blob_url:
-            mesh.image_path = image_blob_url
-            updated = True
-
-    if mesh.video_url and not mesh.video_path:
-        video_blob_url = upload_file_to_azure(mesh.video_url, mesh.job_id, "videos", f"{mesh.job_id}.mp4")
-        if "upload failed" not in video_blob_url:
-            mesh.video_path = video_blob_url
-            updated = True
-
-    if mesh.fbx_url and not mesh.fbx_path:
-        fbx_blob_url = upload_file_to_azure(mesh.fbx_url, mesh.job_id, "fbx", f"{mesh.job_id}.fbx")
-        if "upload failed" not in fbx_blob_url:
-            mesh.fbx_path = fbx_blob_url
-            updated = True
-
-    if updated:
-        mesh.save()
-        logging.info(f"Azure 업로드 완료: {mesh.job_id}")
+        # 원본 JSON 데이터 저장
+        metadata_blob_client = self.container_client.get_blob_client(f"tasks/{task_id}/metadata.json")
+        metadata_blob_client.upload_blob(json.dumps(meshy_response, indent=4), overwrite=True)
+        print(f"Uploaded: tasks/{task_id}/metadata.json")

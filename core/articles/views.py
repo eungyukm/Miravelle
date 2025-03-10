@@ -72,7 +72,16 @@ class ArticleLike(LoginRequiredMixin, View): # 로그인 필수 기능 추가
             else:
                 article.dislike_count += 1
             article.save()
-        return redirect("articles:main") # 상세 페이지로 리다이렉션
+            
+        # HTTP_REFERER -> 이전 페이지 URL 포함하는 HTTP 헤더를 의미
+        # request.META.get('HTTP_REFERER'): 현재 요청이 어느 페이지에서 왔는지 확인하는 것 (아까 request.get_full_path() 썼던 것과 같음)
+        referer = request.META.get('HTTP_REFERER')
+        # referer가 존재하면 (즉, 이전 페이지가 있으면)
+        if referer:
+            # 예: 상세 페이지에서 왔으면 상세 페이지로 메인에서 왔으면 메인으로 이동
+            return redirect(referer)
+        # referer가 없는 경우 메인 페이지로 리다이렉트(외부에서 들어왔을 시)
+        return redirect("articles:main")
     
     
 # 게시물 작성하기
