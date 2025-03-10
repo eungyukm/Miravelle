@@ -6,11 +6,16 @@ from django.http import HttpResponseForbidden # error 403(서버에 요청은 �
 from .forms import ArticleForm
 from django.db import DatabaseError
 
+from workspace.models import MeshModel
+
+
 # 게시글 목록 보기
 class ArticleList(View):
     def get(self, request):
         try:
             article_list = Article.objects.all()
+            model_list = MeshModel.objects.all()
+            print(model_list.count())
 
             if not article_list.exists():
                 article_list = None
