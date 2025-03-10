@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 DEBUG = True
 
 # 로컬 환경인지 배포 환경인지 체크
-IS_LOCAL_ENV = False
+IS_LOCAL_ENV = True
 
 # CSRF 설정
 CSRF_TRUSTED_ORIGINS = [
@@ -57,18 +57,24 @@ ALLOWED_HOSTS = [
 # 로그인 URL 추가
 LOGIN_URL = "/users/login/"
 
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = '/static/'
 
 # 정적 파일 경로 설정
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'core/static'),
+os.path.join(BASE_DIR, 'core/static'),
 ]
 
 # 배포 환경에서 정적 파일을 모을 경로
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Application definition
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Uploaded files save path
 
+# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -169,16 +175,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = "/static/"
-
-# Media files (Uploaded files)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Uploaded files save path
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <div class="wrapper">
     <div class="container-fluid">
         <div class="row">
@@ -20,12 +19,12 @@
                     {% if article_list %} <!--게시글이 있다면-->
                         {% for article in article_list %}
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="main-card">
                                 <a style="color: black;" href="{% url 'articles:articledetail' article.pk %}">
                                 <!--이미지 관련 로직-->
-                                <div class="card-img-top">
+                                <div class="main-card-img-top">
                                     {% if article.image %}
-                                    <img src="{{ article.image.url }}" class="fas fa-image fa-5x" style="max-width: 100%; max-height: 100%; object-fit: contain;"></img>
+                                    <img src="{{ article.image.url }}" class="fas fa-image fa-5x object-fit: contain;"></img>
                                     {% else %}
                                         No Image
                                     {% endif %}
@@ -67,7 +66,7 @@
     </div>
 </div>
 
-<style>
+{% comment %} <style>
     .container {
         margin-top: 20px; 
     }
@@ -126,5 +125,5 @@
         height: 50%;
     }
 
-</style>
+</style> {% endcomment %}
 {% endblock %}
