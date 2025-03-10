@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label>3D 모델 (GLB):</label>
+    <input type="file" name="model_file" required><br>
+
+    <label>Object Prompt:</label>
+    <input type="text" name="object_prompt" required><br>
+
+    <label>Style Prompt:</label>
+    <textarea name="style_prompt" required></textarea><br>
+
+    <button type="submit">텍스처 적용</button>
+</form>
+{% endblock content %}
