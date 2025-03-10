@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from workspace.models import MeshModel
+from utils.azure_storage import upload_file, file_exists
 
 class Asset(models.Model): #     ┌> 사용자 모델을 참조하는 설정                           ┌> = user.assets.all()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assets') # 사용자와 연결
@@ -45,10 +46,22 @@ class MeshAsset(models.Model):
 
     def update_urls(self):
         """Azure Blob Storage URLs 업데이트"""
-        from utils.azure_storage import get_blob_url
-        
-        job_id = self.mesh_model.job_id
-        self.thumbnail_url = get_blob_url(f"{job_id}/thumbnail.jpg")
-        self.fbx_url = get_blob_url(f"{job_id}/model.fbx")
-        self.last_url_update = timezone.now()
-        self.save()
+        try:
+            job_id = self.mesh_model.job_id
+            
+            # 썸네일 URL 가져오기 (previews 폴더에서 확인)
+            thumbnail_path = f"tasks/{job_id}/previews/preview.png"
+            if file_exists(thumbnail_path):
+                self.thumbnail_url = f"https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/{thumbnail_path}"
+
+            # FBX 파일 URL 가져오기 (models 폴더에서 확인)
+            fbx_path = f"tasks/{job_id}/models/model.fbx"
+            if file_exists(fbx_path):
+                self.fbx_url = f"https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/{fbx_path}"
+
+            self.last_url_update = timezone.now()
+            self.save()
+            
+        except Exception as e:
+            print(f"Error updating URLs for {self.mesh_model.job_id}: {e}")
+            raise
