@@ -87,11 +87,13 @@
                 <source id="videoSource" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <button id="publishBtn" class="hidden">Publish</button>
         </div>
     </div>
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const publishBtn = document.getElementById("publishBtn");
         let currentJobId = null;
         localStorage.removeItem("currentJobId");
 
@@ -109,13 +111,13 @@
         function startProgressStream(jobId) {
             if (!jobId) return;
 
-            console.log("🔥 진행률 스트리밍 시작:", jobId);
+            console.log("진행률 스트리밍 시작:", jobId);
             const eventSource = new EventSource(`/workspace/${jobId}/stream/`);
 
             eventSource.onmessage = function (event) {
                 try {
                     const data = JSON.parse(event.data);
-                    console.log("🔥 스트리밍 데이터 수신:", data);
+                    console.log("스트리밍 데이터 수신:", data);
 
                     if (data.progress !== undefined) {
                         progressBar.style.width = `${data.progress}%`;
@@ -126,18 +128,18 @@
                     if (["SUCCEEDED", "FAILED", "CANCELED"].includes(data.status)) {
                         eventSource.close();
                         if (data.status === "SUCCEEDED") {
-                            fetchMeshData(jobId);  // ✅ 100% 완료되면 get_mesh 실행
+                            fetchMeshData(jobId);  // 100% 완료되면 get_mesh 실행
                         } else {
-                            alert("❌ 모델 생성 실패!");
+                            alert("모델 생성 실패!");
                         }
                     }
                 } catch (error) {
-                    console.error("❌ JSON 파싱 오류:", error);
+                    console.error("JSON 파싱 오류:", error);
                 }
             };
 
             eventSource.onerror = function () {
-                console.error("🔴 스트리밍 연결 오류. 3초 후 재시도...");
+                console.error("스트리밍 연결 오류. 3초 후 재시도...");
                 eventSource.close();
                 setTimeout(() => startProgressStream(jobId), 3000);
             };
@@ -158,12 +160,44 @@
                         video.style.display = "block";
                     }
                     previewSection.style.display = "block";
-                    alert("🎉 모델 생성 완료!");
+
+                    // Publish 버튼 표시
+                    publishBtn.style.display = "block";
+
+                    // 버튼에 이벤트 핸들러 설정
+                    publishBtn.onclick = () => publishArticle(jobId);
+
+                    alert("모델 생성 완료!");
                 })
                 .catch(error => {
                     console.error("Error fetching mesh data:", error);
                     alert("모델 데이터를 가져오는 중 오류가 발생했습니다.");
                 });
+        }
+
+        function publishArticle(jobId) {
+            if (!jobId) return;
+
+            console.log("Publishing Article...");
+
+            fetch(`/publish/${jobId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("게시글이 성공적으로 공개되었습니다!");
+                } else {
+                    alert("게시 실패: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error publishing article:", error);
+                alert("게시 중 오류가 발생했습니다.");
+            });
         }
 
         document.getElementById("meshForm").addEventListener("submit", function (event) {

@@ -6,5 +6,5 @@ urlpatterns = [
     path("first/", first_publish, name='first_publish'),
 
     # 특정 MeshModel을 기반으로 Article 생성
-    path("articles/<int:id>/", publish_article, name='publish_article'),
+    path('<uuid:id>/', publish_article, name='publish_article'),
 ]
