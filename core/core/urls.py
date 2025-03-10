@@ -28,6 +28,9 @@ urlpatterns = [
     path("threeworld/", include("threeworld.urls")),
     path("utils/", include("utils.urls")),
 
+
+    path("publish/", include("model_storage.urls")),
+
     # main page
     path("", include("articles.urls")),
 
