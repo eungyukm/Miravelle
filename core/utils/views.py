@@ -1,4 +1,8 @@
-from django.http import JsonResponse, HttpResponseNotFound
+from django.http import HttpResponseNotFound, JsonResponse
+from django.views.decorators.http import require_http_methods
+import requests
+
+# Azure Storage 관련 함수들은 주석 처리
 from .azure_storage import list_blobs, file_exists, upload_file, delete_file
 
 
@@ -31,3 +35,30 @@ def delete_file_view(request, blob_name):
     if success:
         return JsonResponse({"success": True})
     return HttpResponseNotFound("파일 삭제 실패")
+
+
+@require_http_methods(["GET"])
+def list_files_details(request):
+    """실제 메시 데이터를 반환합니다"""
+    storage_account = "miravelledevstorage"
+    container = "meshy-3d-assets"
+    base_url = f"https://{storage_account}.blob.core.windows.net/{container}"
+    
+    # 실제 메시 데이터
+    tasks = [
+        {
+            'task_id': '0195706c-4abe-7707-99cf-b719622134ed',
+            'name': 'coco',  # prompt 값을 name으로 사용
+            'thumbnail': "https://assets.meshy.ai/c9103216-ab25-47b6-ad99-a594f1faa190/tasks/0195706c-4abe-7707-99cf-b719622134ed/output/preview.png?Expires=4894905600&Signature=hnHkocuEopTLv~c3j5YGqWtfJVRy0rYB2oddLTHjB4rqYkToqNGzfPUmBv8Uhuh8FFZWPABCMeOfjHGmvziyGysTt7TTB2Q7ypVlUjh5wqSn2PfkSPEAMnP2QbVnTRGFbOM5lVascXFVKuj90Ae47sTFidufwdZCzxR8Qp503q5swipNds4xkWUCmREH2g~ROUnK5UqvWpxoadpF7yqBwWWpkDvOTlSI5R7T0vS2eD9wNahlFTVDWjVQxE3dc-iM9NScB6K26YBdjPT0QtJn5br7My917ARNPJdp3lGDq2UT8fcGZ1XUnmDAoSEocn00SNQBvZQuqajPovfnutm-MQ__&Key-Pair-Id=KL5I0C8H7HX83",
+            'mesh_url': "https://assets.meshy.ai/c9103216-ab25-47b6-ad99-a594f1faa190/tasks/0195706c-4abe-7707-99cf-b719622134ed/output/model.fbx?Expires=4894905600&Signature=CIV5iLMimJ1iUQuijHS68D2Sgahjxm7pl4tP~ahgP7wd10smCfKuGGV45eL1WYpfIVD4W-NYyHh35GTDhg-FGHZ0wg1XXHVKRctLn7Ynd~Q49UgQfNKMZyVkHaBAWMGbOZH8aox~ZENdYIi6MobqDZAYlrfdIYe7tXgDNI0B-6PUwY3TcmZ3hM~GEq4HUyDY0neZIjk0myKc5c2eiC-dlCPdcYW0Y7A~4BQAmM-yB9VEaxOyPK7BYWInu~1uj8ONYIwkmEUZTqbmPcquNsJHmvZPuk~mGmmC-iMf0QOa3K8vDwecmzftsfScCMK2nE6r~THXBLObKWcAQ3rp0tWJEQ__&Key-Pair-Id=KL5I0C8H7HX83",
+            'is_image': True,
+            'created_at': 1741347900457,
+            'status': 'SUCCEEDED'
+        }
+    ]
+    
+    return JsonResponse({
+        "success": True,
+        "message": "작업 목록을 성공적으로 가져왔습니다.",
+        "tasks": tasks
+    })

@@ -11,5 +11,6 @@ app_name = 'assets'
 urlpatterns = [
     path('', AssetListView.as_view(), name='asset_list'),
     path('create/', create_asset, name='asset_create'),  # 에셋 생성 페이지
-    path('<int:pk>/delete/', delete_asset, name='asset_delete'),
+    path('<int:pk>/delete/', delete_asset, name='asset_delete')
+
 ]

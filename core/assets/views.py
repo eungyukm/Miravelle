@@ -6,16 +6,37 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import Asset
+import requests
 
 # Create your views here.
 
 class AssetListView(LoginRequiredMixin, ListView):
     """
     사용자의 3D 모델 에셋 목록을 보여주는 뷰
+    - DB에 저장된 에셋
+    - Azure Storage의 메시 데이터
     """
-    model = Asset  # 모델 지정
-    template_name = 'assets/asset_list.html'  # 템플릿 지정
-    context_object_name = 'assets'  # 컨텍스트 객체 이름 지정
+    model = Asset
+    template_name = 'assets/asset_list.html'
+    context_object_name = 'assets'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # 메시 데이터 가져오기
+        try:
+            response = requests.get('http://localhost:8000/utils/list_files_details/')
+            if response.status_code == 200:
+                data = response.json()
+                context['meshy_tasks'] = data.get('tasks', [])
+            else:
+                context['meshy_tasks'] = []
+                context['meshy_error'] = '메시 데이터를 가져오는데 실패했습니다.'
+        except Exception as e:
+            context['meshy_tasks'] = []
+            context['meshy_error'] = str(e)
+        
+        return context
     
     def get_queryset(self):
         """현재 로그인한 사용자의 에셋만 필터링하여 반환"""
