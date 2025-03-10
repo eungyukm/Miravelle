@@ -9,9 +9,46 @@ from django.utils import timezone
 from datetime import timedelta
 from workspace.models import MeshModel
 from .models import Asset, MeshAsset
+from utils.azure_key_manager import AzureKeyManager
+from azure.storage.blob import generate_blob_sas, BlobSasPermissions, BlobServiceClient
 import requests
+import logging
+import json
+import os
 
-# Create your views here.
+# 로깅 설정
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+# AzureKeyManager 인스턴스 가져오기
+azure_keys = AzureKeyManager.get_instance()
+
+def check_file_exists(blob_name):
+    """Azure Blob Storage에서 특정 파일 존재 여부 확인"""
+    try:
+        # AzureKeyManager에서 키 가져오기
+        storage_account_name = azure_keys.storage_account_name
+        storage_account_key = azure_keys.storage_account_key
+        container_name = azure_keys.container_name
+        
+        if not storage_account_key:
+            logger.warning("Azure Storage 계정 키를 찾을 수 없습니다. 파일 존재 여부 확인이 불가능합니다.")
+            return False
+        
+        # Blob Service Client 생성
+        blob_service_client = BlobServiceClient(
+            account_url=f"https://{storage_account_name}.blob.core.windows.net",
+            credential=storage_account_key
+        )
+        
+        # 컨테이너에서 파일 존재 여부 확인
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+        exists = blob_client.exists()
+        logger.info(f"파일 {blob_name} 존재 여부: {exists} (컨테이너: {container_name})")
+        return exists
+    except Exception as e:
+        logger.error(f"파일 존재 여부 확인 실패: {str(e)}")
+        return False
 
 class AssetListView(LoginRequiredMixin, ListView):
     """
@@ -174,6 +211,7 @@ def test_create_asset(request):
         return JsonResponse({"error": str(e)}, status=500)
 # ──────────────────────────── 여기 까지 테스트 코드 ────────────────────────────
 
+@require_POST
 @login_required
 def delete_mesh_asset(request, job_id):
     """
