@@ -23,11 +23,15 @@
                                 <a style="color: black;" href="{% url 'articles:articledetail' article.pk %}">
                                 <!--이미지 관련 로직-->
                                 <div class="main-card-img-top">
-                                    {% if article.image %}
-                                    <img src="{{ article.image.url }}" class="fas fa-image fa-5x object-fit: contain;"></img>
+                                    {% if article.image_path %}
+                                        {% if article.image_path.name|slice:":4" == "http" %}
+                                            <img src="{{ article.image_path.name }}" class="fas fa-image fa-5x object-fit: contain;"></img>
+                                        {% else %}
+                                            <img src="{{ article.image_path.url }}" class="fas fa-image fa-5x object-fit: contain;"></img>
+                                        {% endif %}
                                     {% else %}
                                         No Image
-                                    {% endif %}
+                                    {% endif %}                                
                                 </div>
                                 <!--게시글 목록에 표시될 로직-->
                                 <div>

@@ -8,15 +8,20 @@ from django.db import DatabaseError
 
 from workspace.models import MeshModel
 
+def get_image_url(article):
+    if article.image_path:
+        if article.image_path.name.startswith('http'):
+            return article.image_path.name
+        return article.image_path.url
+    return None
+
 
 # 게시글 목록 보기
 class ArticleList(View):
     def get(self, request):
         try:
             article_list = Article.objects.all()
-            model_list = MeshModel.objects.all()
-            print(model_list.count())
-
+        
             if not article_list.exists():
                 article_list = None
 
