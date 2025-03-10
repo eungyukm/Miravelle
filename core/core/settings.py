@@ -26,8 +26,8 @@ SECRET_KEY = "django-insecure-ahgtht+0)cqb@vhats1co9jsj622h9)zvy845)sl644ws-5j2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# 로컬 환경인지 배포 환경인지 체크
-IS_LOCAL_ENV = True
+# 로컬 환경인지 배포 환경인지 체크(Main의 경우 항상 False 유지)
+IS_LOCAL_ENV = False
 
 # CSRF 설정
 CSRF_TRUSTED_ORIGINS = [
