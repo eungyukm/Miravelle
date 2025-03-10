@@ -3,6 +3,10 @@ from django.conf import settings
 from django.utils import timezone
 from workspace.models import MeshModel
 from utils.azure_storage import upload_file, file_exists
+import logging
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
 class Asset(models.Model): #     ┌> 사용자 모델을 참조하는 설정                           ┌> = user.assets.all()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assets') # 사용자와 연결
@@ -32,6 +36,7 @@ class MeshAsset(models.Model):
     
     # 에셋 표시용 메타데이터
     title = models.CharField(max_length=255, blank=True)
+    prompt = models.TextField(blank=True)  # 프롬프트 저장
     thumbnail_url = models.URLField(blank=True)
     fbx_url = models.URLField(blank=True)
     
@@ -49,19 +54,26 @@ class MeshAsset(models.Model):
         try:
             job_id = self.mesh_model.job_id
             
+            # 프롬프트 업데이트
+            self.prompt = self.mesh_model.create_prompt
+            
             # 썸네일 URL 가져오기 (previews 폴더에서 확인)
             thumbnail_path = f"tasks/{job_id}/previews/preview.png"
+            logger.info(f"Checking thumbnail at path: {thumbnail_path}")
             if file_exists(thumbnail_path):
                 self.thumbnail_url = f"https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/{thumbnail_path}"
+                logger.info(f"Thumbnail URL updated: {self.thumbnail_url}")
 
             # FBX 파일 URL 가져오기 (models 폴더에서 확인)
             fbx_path = f"tasks/{job_id}/models/model.fbx"
+            logger.info(f"Checking FBX at path: {fbx_path}")
             if file_exists(fbx_path):
                 self.fbx_url = f"https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/{fbx_path}"
+                logger.info(f"FBX URL updated: {self.fbx_url}")
 
             self.last_url_update = timezone.now()
             self.save()
             
         except Exception as e:
-            print(f"Error updating URLs for {self.mesh_model.job_id}: {e}")
+            logger.error(f"Error updating URLs for {self.mesh_model.job_id}: {e}")
             raise

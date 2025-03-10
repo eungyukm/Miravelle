@@ -36,7 +36,6 @@
         <div class="col d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="text-dark mb-0">My 3D Assets</h2>
-                <p class="text-muted mb-0">내가 생성한 3D 모델링 에셋 목록입니다.</p>
             </div>
             <a href="{% url 'assets:asset_create' %}" class="btn btn-outline-dark">
                 <i class="bi bi-plus-lg"></i> 새 에셋 생성
@@ -57,21 +56,21 @@
                 {% endif %}
                 
                 <div class="card-body px-0 pt-3 pb-4">
-                    <h2 class="h5 mb-1">{{ asset.title }}</h2>
-                    <p class="text-muted small">업로드: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
+                    <h2 class="h5 mb-1">{{ asset.prompt|truncatechars:50 }}</h2>
+                    <p class="text-muted small">생성일: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
                     
                     <div class="mt-2">
                         {% if asset.fbx_url %}
                         <a href="{{ asset.fbx_url }}" 
                            class="btn btn-sm btn-outline-dark me-2" 
                            download>
-                            다운로드
+                            <i class="bi bi-download"></i> 다운로드
                         </a>
                         {% endif %}
                         
                         <button onclick="deleteMeshAsset('{{ asset.mesh_model.job_id }}')" 
                                 class="btn btn-sm btn-outline-dark">
-                            삭제
+                            <i class="bi bi-trash"></i> 삭제
                         </button>
                     </div>
                 </div>
@@ -104,12 +103,12 @@
                     <div class="mt-2">
                         <button onclick="deleteAsset('{{ asset.id }}')" 
                                 class="btn btn-sm btn-outline-dark me-2">
-                            삭제
+                            <i class="bi bi-trash"></i> 삭제
                         </button>
                         
                         <a href="{{ asset.file_path }}" 
                            class="btn btn-sm btn-outline-dark">
-                            다운로드
+                            <i class="bi bi-download"></i> 다운로드
                         </a>
                     </div>
                 </div>
