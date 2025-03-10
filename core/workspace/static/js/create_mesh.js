@@ -16,13 +16,13 @@ document.addEventListener("DOMContentLoaded", function () {
     function startProgressStream(jobId) {
         if (!jobId) return;
 
-        console.log("🔥 진행률 스트리밍 시작:", jobId);
+        console.log("진행률 스트리밍 시작:", jobId);
         const eventSource = new EventSource(`/workspace/${jobId}/stream/`);
 
         eventSource.onmessage = function (event) {
             try {
                 const data = JSON.parse(event.data);
-                console.log("🔥 스트리밍 데이터 수신:", data);
+                console.log("스트리밍 데이터 수신:", data);
 
                 if (data.progress !== undefined) {
                     progressBar.style.width = `${data.progress}%`;
@@ -35,16 +35,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.status === "SUCCEEDED") {
                         fetchMeshData(jobId);  // ✅ 100% 완료되면 get_mesh 실행
                     } else {
-                        alert("❌ 모델 생성 실패!");
+                        alert("모델 생성 실패!");
                     }
                 }
             } catch (error) {
-                console.error("❌ JSON 파싱 오류:", error);
+                console.error("JSON 파싱 오류:", error);
             }
         };
 
         eventSource.onerror = function () {
-            console.error("🔴 스트리밍 연결 오류. 3초 후 재시도...");
+            console.error("스트리밍 연결 오류. 3초 후 재시도...");
             eventSource.close();
             setTimeout(() => startProgressStream(jobId), 3000);
         };
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     video.style.display = "block";
                 }
                 previewSection.style.display = "block";
-                alert("🎉 모델 생성 완료!");
+                alert("모델 생성 완료!");
             })
             .catch(error => {
                 console.error("Error fetching mesh data:", error);
