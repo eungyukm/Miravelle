@@ -46,33 +46,30 @@
 
     <!-- 메시 생성 에셋 -->
     <div class="row g-4">
-        {% for task in meshy_tasks %}
+        {% for asset in mesh_assets %}
         <div class="col-md-6 col-lg-4">
             <div class="card border-0">
-                {% if task.thumbnail %}
-                <img src="{{ task.thumbnail }}" 
+                {% if asset.thumbnail_url %}
+                <img src="{{ asset.thumbnail_url }}" 
                      class="card-img-top" 
-                     alt="{{ task.name }}"
+                     alt="{{ asset.title }}"
                      style="height: 200px; object-fit: cover;">
                 {% endif %}
                 
                 <div class="card-body px-0 pt-3 pb-4">
-                    <h2 class="h5 mb-1">{{ task.name }}</h2>
-                    <p class="text-muted small">생성일: {{ task.created_at|date:"Y.m.d" }}</p>
-                    {% if task.status %}
-                    <p class="text-muted small">{{ task.status }}</p>
-                    {% endif %}
+                    <h2 class="h5 mb-1">{{ asset.title }}</h2>
+                    <p class="text-muted small">업로드: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
                     
                     <div class="mt-2">
-                        {% if task.mesh_url %}
-                        <a href="{{ task.mesh_url }}" 
+                        {% if asset.fbx_url %}
+                        <a href="{{ asset.fbx_url }}" 
                            class="btn btn-sm btn-outline-dark me-2" 
                            download>
                             다운로드
                         </a>
                         {% endif %}
                         
-                        <button onclick="previewModel('{{ task.task_id }}')" 
+                        <button onclick="deleteMeshAsset('{{ asset.mesh_model.job_id }}')" 
                                 class="btn btn-sm btn-outline-dark">
                             삭제
                         </button>
@@ -127,9 +124,27 @@
 </div>
 
 <script>
-function previewModel(taskId) {
-    // TODO: 3D 모델 미리보기 구현
-    console.log('Preview model:', taskId);
+function deleteMeshAsset(jobId) {
+    if (confirm('정말 이 에셋을 삭제하시겠습니까?')) {
+        fetch(`/assets/mesh/${jobId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.job_id) {
+                window.location.reload();
+            } else {
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        });
+    }
 }
 
 function deleteAsset(assetId) {

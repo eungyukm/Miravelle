@@ -5,7 +5,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import Asset
+from django.utils import timezone
+from datetime import timedelta
+from workspace.models import MeshModel
+from .models import Asset, MeshAsset
 import requests
 
 # Create your views here.
@@ -13,8 +16,8 @@ import requests
 class AssetListView(LoginRequiredMixin, ListView):
     """
     사용자의 3D 모델 에셋 목록을 보여주는 뷰
-    - DB에 저장된 에셋
-    - Azure Storage의 메시 데이터
+    - MeshModel에서 생성된 에셋
+    - 업로드된 에셋
     """
     model = Asset
     template_name = 'assets/asset_list.html'
@@ -23,19 +26,32 @@ class AssetListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # 메시 데이터 가져오기
-        try:
-            response = requests.get('http://localhost:8000/utils/list_files_details/')
-            if response.status_code == 200:
-                data = response.json()
-                context['meshy_tasks'] = data.get('tasks', [])
-            else:
-                context['meshy_tasks'] = []
-                context['meshy_error'] = '메시 데이터를 가져오는데 실패했습니다.'
-        except Exception as e:
-            context['meshy_tasks'] = []
-            context['meshy_error'] = str(e)
+        # 사용자의 MeshModel에 해당하는 MeshAsset 가져오기
+        mesh_models = MeshModel.objects.filter(user=self.request.user)
+        mesh_assets = []
         
+        for mesh_model in mesh_models:
+            # MeshAsset이 없으면 생성
+            asset, created = MeshAsset.objects.get_or_create(
+                mesh_model=mesh_model,
+                defaults={
+                    'title': f'Mesh {mesh_model.job_id[:8]}',
+                }
+            )
+            
+            # URL이 없거나 오래된 경우 업데이트 (1시간 기준)
+            if not asset.thumbnail_url or (
+                asset.last_url_update and 
+                timezone.now() - asset.last_url_update > timedelta(hours=1)
+            ):
+                try:
+                    asset.update_urls()
+                except Exception as e:
+                    print(f"Error updating URLs for {asset}: {e}")
+            
+            mesh_assets.append(asset)
+        
+        context['mesh_assets'] = mesh_assets
         return context
     
     def get_queryset(self):
@@ -157,5 +173,28 @@ def test_create_asset(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 # ──────────────────────────── 여기 까지 테스트 코드 ────────────────────────────
+
+@login_required
+def delete_mesh_asset(request, job_id):
+    """
+    메시 에셋을 삭제하는 뷰
+    """
+    try:
+        mesh_asset = get_object_or_404(MeshAsset, mesh_model__job_id=job_id, mesh_model__user=request.user)
+        mesh_model = mesh_asset.mesh_model
+        
+        # MeshAsset과 MeshModel 모두 삭제
+        mesh_asset.delete()
+        mesh_model.delete()
+        
+        return JsonResponse({
+            "message": "Asset deleted successfully",
+            "job_id": job_id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
 
 
