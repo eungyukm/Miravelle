@@ -27,6 +27,7 @@ urlpatterns = [
     path("article/", include("articles.urls")),
     path("threeworld/", include("threeworld.urls")),
     path("utils/", include("utils.urls")),
+    path("texture/", include("texture.urls")),
 
     # main page
     path("", include("articles.urls")),
