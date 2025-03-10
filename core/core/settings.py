@@ -86,11 +86,12 @@ INSTALLED_APPS = [
     # Create app list
     "users", # 유저 관라 앱
     "assets", # 유저가 생상한 모델을 볼 수 있는 공간 관리 앱
-    "workspace", # 작업 공간 앱
+    "workspace", # 3D 모델 작업 공간 앱
     "model_storage",
     "articles", # 메인 화면에 있는 글 관리 앱
     "threeworld", # three.js app
     "utils", # 유틸리티 관련 테스팅 및 관리 앱
+    "texture", # 텍스처 작업 공간 앱
 
     # DRF & Swagger
     # "rest_framework",
