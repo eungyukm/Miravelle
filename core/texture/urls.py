@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import TextureCreate
+from .views import upload_model, check_status
 
-
-app_name = "texture"
 urlpatterns = [
-    path("", TextureCreate, name="texture-create"), # 텍스처 생성
+    path("upload/", upload_model, name="upload-model"),
+    path("status/<int:texture_id>/", check_status, name="check-status"),
 ]
