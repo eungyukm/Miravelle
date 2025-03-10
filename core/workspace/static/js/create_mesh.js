@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     video.style.display = "block";
                 }
                 previewSection.style.display = "block";
-                alert("🎉 모델 생성 완료!");
+                alert("모델 생성 완료!");
             })
             .catch(error => {
                 console.error("Error fetching mesh data:", error);
