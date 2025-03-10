@@ -31,9 +31,18 @@
 
 {% block content %}
 <div class="container py-4">
-    <!-- 페이지 제목 -->
-    <h1 class="mb-1">My 3D Assets</h1>
-    <p class="text-muted mb-5">내가 생성한 3D 모델링 에셋 목록입니다.</p>
+    <!-- 페이지 제목 섹션 -->
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="text-dark mb-0">My 3D Assets</h2>
+                <p class="text-muted mb-0">내가 생성한 3D 모델링 에셋 목록입니다.</p>
+            </div>
+            <a href="{% url 'assets:asset_create' %}" class="btn btn-outline-dark">
+                <i class="bi bi-plus-lg"></i> 새 에셋 생성
+            </a>
+        </div>
+    </div>
 
     <!-- 메시 생성 에셋 -->
     <div class="row g-4">
@@ -79,7 +88,7 @@
     </div>
 
     <!-- 업로드된 에셋 -->
-    <h2 class="h4 mt-5 mb-4">업로드된 에셋</h2>
+    <h2 class="h4 mt-5 mb-4">업로드된 테스트 에셋</h2>
     <div class="row g-4">
         {% for asset in assets %}
         <div class="col-md-6 col-lg-4">
