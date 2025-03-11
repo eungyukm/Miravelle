@@ -31,10 +31,9 @@
     </div>
 </div>
 
-<!-- Three.js & FBXLoader -->
+<!-- Three.js & GLTFLoader -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/FBXLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
     // Three.js 기본 설정
@@ -52,20 +51,32 @@
     light.position.set(10, 10, 10);
     scene.add(light);
 
-    let loadedModel = null; // 모델 저장용 변수
-    let isDragging = false; // 마우스 드래그 상태
-    let isPanning = false; // 마우스 휠 버튼 드래그 상태
+    let loadedModel = null;
+    let isDragging = false;
+    let isPanning = false;
     let previousMousePosition = { x: 0, y: 0 };
 
-    // FBX 로드
-    const loader = new THREE.FBXLoader();
-    loader.load('/static/models/downloaded_test_model.fbx', (fbx) => {
-        scene.add(fbx);
-        fbx.scale.set(0.05, 0.05, 0.05);
-        loadedModel = fbx; // 모델 저장
-    }, undefined, (error) => {
-        console.error('FBX Load Error:', error);
-    });
+    // Azure Blob Storage에서 모델 로드
+    const loader = new THREE.GLTFLoader();
+    const blobUrl = 'https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/tasks/01957d90-e660-728c-9387-84b23aa5dc6a/models/model.glb';
+
+    loader.setCrossOrigin('anonymous'); // CORS 설정 추가
+
+    loader.load(
+        blobUrl,
+        (gltf) => {
+            const model = gltf.scene;
+            scene.add(model);
+            model.scale.set(0.5, 0.5, 0.5); // 모델 크기 조정
+            loadedModel = model;
+        },
+        (xhr) => {
+            console.log(`Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+        },
+        (error) => {
+            console.error('GLTF Load Error:', error);
+        }
+    );
 
     // 애니메이션 루프
     function animate() {
@@ -83,14 +94,14 @@
 
     // 마우스 드래그로 모델 회전 (왼쪽 버튼)
     function onMouseDown(event) {
-        if (event.button === 0) { // 왼쪽 버튼 클릭 → 모델 회전
+        if (event.button === 0) {
             isDragging = true;
             previousMousePosition = { x: event.clientX, y: event.clientY };
-            container.style.cursor = "grabbing"; // 커서 변경
-        } else if (event.button === 1) { // 휠 버튼 클릭 → 카메라 이동
+            container.style.cursor = "grabbing";
+        } else if (event.button === 1) {
             isPanning = true;
             previousMousePosition = { x: event.clientX, y: event.clientY };
-            container.style.cursor = "move"; // 커서 변경
+            container.style.cursor = "move";
         }
     }
 
@@ -98,18 +109,15 @@
         if (isDragging && loadedModel) {
             const deltaX = event.clientX - previousMousePosition.x;
             const deltaY = event.clientY - previousMousePosition.y;
-            
-            loadedModel.rotation.x += deltaY * 0.005;
             loadedModel.rotation.y += deltaX * 0.005;
+            loadedModel.rotation.x += deltaY * 0.005;
         }
 
         if (isPanning) {
             const deltaX = event.clientX - previousMousePosition.x;
             const deltaY = event.clientY - previousMousePosition.y;
-
             camera.position.x -= deltaX * 0.01;
             camera.position.y += deltaY * 0.01;
-
             camera.position.x = Math.max(-5, Math.min(5, camera.position.x));
             camera.position.y = Math.max(0, Math.min(5, camera.position.y));
         }
@@ -118,13 +126,9 @@
     }
 
     function onMouseUp(event) {
-        if (event.button === 0) {
-            isDragging = false;
-            container.style.cursor = "grab";
-        } else if (event.button === 1) {
-            isPanning = false;
-            container.style.cursor = "grab";
-        }
+        isDragging = false;
+        isPanning = false;
+        container.style.cursor = "grab";
     }
 
     // 카메라 줌 (마우스 휠)
@@ -133,10 +137,8 @@
 
     function onMouseWheel(event) {
         event.preventDefault();
-
         let zoomAmount = event.deltaY * 0.01;
         let newDistance = camera.position.z + zoomAmount;
-
         if (newDistance >= minDistance && newDistance <= maxDistance) {
             camera.position.z = newDistance;
         }
