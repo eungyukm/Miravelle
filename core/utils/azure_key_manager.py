@@ -52,7 +52,7 @@ class AzureKeyManager:
         self.storage_account_key = self._get_secret("azure-storage-account-key")
         self.container_name = self._get_secret("azure-container-name")
         self.connection_string = self._get_secret("azure-connection-string")
-        self.meshy_api_key = self._get_secret("mehsy-api-key", strip=True)
+        self.meshy_api_key = self._get_secret("meshy-api-key", strip=True)
 
     def _get_secret(self, secret_name, strip=False):
         """Key Vault에서 Secret을 안전하게 가져오는 메서드"""

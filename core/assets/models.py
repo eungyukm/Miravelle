@@ -53,27 +53,12 @@ class MeshAsset(models.Model):
         """Azure Blob Storage URLs 업데이트"""
         try:
             job_id = self.mesh_model.job_id
+            logger.info(f"MeshAsset.update_urls() 메서드는 더 이상 사용되지 않습니다. AssetListView에서 직접 URL을 업데이트합니다.")
+            logger.info(f"Job ID: {job_id}의 URL 업데이트를 시도했습니다.")
             
-            # 프롬프트 업데이트
-            self.prompt = self.mesh_model.create_prompt
-            
-            # 썸네일 URL 가져오기 (previews 폴더에서 확인)
-            thumbnail_path = f"tasks/{job_id}/previews/preview.png"
-            logger.info(f"Checking thumbnail at path: {thumbnail_path}")
-            if file_exists(thumbnail_path):
-                self.thumbnail_url = f"https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/{thumbnail_path}"
-                logger.info(f"Thumbnail URL updated: {self.thumbnail_url}")
-
-            # FBX 파일 URL 가져오기 (models 폴더에서 확인)
-            fbx_path = f"tasks/{job_id}/models/model.fbx"
-            logger.info(f"Checking FBX at path: {fbx_path}")
-            if file_exists(fbx_path):
-                self.fbx_url = f"https://miravelledevstorage.blob.core.windows.net/meshy-3d-assets/{fbx_path}"
-                logger.info(f"FBX URL updated: {self.fbx_url}")
-
-            self.last_url_update = timezone.now()
-            self.save()
+            # 이 메서드는 더 이상 사용되지 않으므로 아무 작업도 수행하지 않습니다.
+            # 실제 URL 업데이트는 AssetListView.get_context_data()에서 수행됩니다.
             
         except Exception as e:
-            logger.error(f"Error updating URLs for {self.mesh_model.job_id}: {e}")
+            logger.error(f"Error in deprecated update_urls for {self.mesh_model.job_id}: {e}")
             raise
