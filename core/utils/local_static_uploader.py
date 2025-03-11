@@ -1,12 +1,16 @@
 import os
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
+import mimetypes
+
+# MIME 타입 초기화
+mimetypes.init()
 
 # .env 파일 로드
 load_dotenv()
 
 def upload_all_static_files_to_azure(directory):
-    """지정된 디렉토리의 모든 파일을 Azure Blob Storage에 업로드"""
+    """지정된 디렉토리의 모든 파일을 Azure Blob Storage에 MIME 타입과 함께 업로드"""
 
     # 환경 변수에서 값 읽기
     AZURE_STORAGE_ACCOUNT_NAME = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
@@ -46,14 +50,19 @@ def upload_all_static_files_to_azure(directory):
 
     for i, (file_path, blob_name) in enumerate(file_list, 1):
         try:
+            # MIME 타입 추측
+            mime_type, _ = mimetypes.guess_type(file_path)
+            if mime_type is None:
+                mime_type = "application/octet-stream"  # 기본값
+
             # Blob 클라이언트 생성
             blob_client = blob_service_client.get_blob_client(container=AZURE_STATIC_CONTAINER_NAME, blob=blob_name)
             
-            # 파일 열기 및 업로드
+            # 파일 열기 및 업로드 (MIME 타입 지정)
             with open(file_path, "rb") as data:
-                blob_client.upload_blob(data, overwrite=True)
+                blob_client.upload_blob(data, overwrite=True, content_type=mime_type)
 
-            print(f"[{i}/{total_files}] 업로드 성공: {blob_name}")
+            print(f"[{i}/{total_files}] 업로드 성공: {blob_name} (MIME: {mime_type})")
             success_count += 1
         except Exception as e:
             print(f"[{i}/{total_files}] 업로드 실패: {blob_name} - 오류: {str(e)}")
@@ -106,10 +115,10 @@ def delete_all_files_in_container():
     except Exception as e:
         print(f"컨테이너 파일 삭제 실패: {e}")
 
-# 실행 코드 추가
-# if __name__ == "__main__":
-#     static_dir = "core/staticfiles/"
+# 실행 코드
+if __name__ == "__main__":
+    static_dir = "core/staticfiles/"  # 업로드할 로컬 디렉토리
     
-#     # 삭제 후 업로드 실행
-#     delete_all_files_in_container()
-#     upload_all_static_files_to_azure(static_dir)
+    # 삭제 후 업로드 실행
+    delete_all_files_in_container()
+    upload_all_static_files_to_azure(static_dir)
