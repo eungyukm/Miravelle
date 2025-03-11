@@ -116,9 +116,9 @@ def delete_all_files_in_container():
         print(f"컨테이너 파일 삭제 실패: {e}")
 
 # 실행 코드
-if __name__ == "__main__":
-    static_dir = "core/staticfiles/"  # 업로드할 로컬 디렉토리
+# if __name__ == "__main__":
+#     static_dir = "core/staticfiles/"  # 업로드할 로컬 디렉토리
     
-    # 삭제 후 업로드 실행
-    delete_all_files_in_container()
-    upload_all_static_files_to_azure(static_dir)
+#     # 삭제 후 업로드 실행
+#     delete_all_files_in_container()
+#     upload_all_static_files_to_azure(static_dir)
