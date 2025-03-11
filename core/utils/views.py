@@ -1,9 +1,11 @@
 from django.http import HttpResponseNotFound, JsonResponse
 from django.views.decorators.http import require_http_methods
-import requests
+from azure.storage.blob import BlobServiceClient
+import uuid
 
 # Azure Storage 관련 함수들은 주석 처리
 from .azure_storage import list_blobs, file_exists, upload_file, delete_file
+from .azure_key_manager import AzureKeyManager
 
 
 def list_files_view(request):
@@ -62,3 +64,36 @@ def list_files_details(request):
         "message": "작업 목록을 성공적으로 가져왔습니다.",
         "tasks": tasks
     })
+
+def get_glb_file(request, file_id):
+    print(f"get_glb_file file_id {file_id}")
+    """http://127.0.0.1:8000/utils/get_glb/01957d90-e660-728c-9387-84b23aa5dc6a/"""
+
+    try:
+        # UUID가 유효한지 확인
+        if not isinstance(file_id, uuid.UUID):
+            return JsonResponse({'error': 'Invalid UUID format'}, status=400)
+        
+        azure_keys = AzureKeyManager.get_instance()
+        
+        # Azure Blob Service 연결
+        blob_service_client = BlobServiceClient.from_connection_string(azure_keys.connection_string)
+        print(f"azure_keys.container_name {azure_keys.container_name}")
+        container_client = blob_service_client.get_container_client(azure_keys.container_name)
+        
+        # Blob 경로 설정
+        blob_path = f'tasks/{file_id}/models/model.glb'
+        blob_client = container_client.get_blob_client(blob_path)
+
+        if blob_client.exists():
+            # HTTPS URL 반환
+            blob_url = blob_client.url
+            if not blob_url.startswith('https'):
+                blob_url = blob_url.replace('http://', 'https://')
+                
+            return JsonResponse({'file_url': blob_url}, status=200)
+        else:
+            return JsonResponse({'error': 'File not found'}, status=404)
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
