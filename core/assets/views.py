@@ -95,6 +95,33 @@ def check_file_exists(blob_name):
         # 클라우드 환경에서는 파일이 존재한다고 가정
         return True
 
+def verify_blob_exists(blob_path):
+    """Azure Blob Storage에서 파일이 실제로 존재하는지 확인"""
+    try:
+        # AzureKeyManager에서 키 가져오기
+        storage_account_name = azure_keys.storage_account_name
+        storage_account_key = azure_keys.storage_account_key
+        container_name = azure_keys.container_name
+        
+        if not storage_account_key:
+            logger.warning("Azure Storage 계정 키를 찾을 수 없습니다. 파일 존재 여부 확인이 불가능합니다.")
+            return False
+        
+        # Blob Service Client 생성
+        blob_service_client = BlobServiceClient(
+            account_url=f"https://{storage_account_name}.blob.core.windows.net",
+            credential=storage_account_key
+        )
+        
+        # 컨테이너에서 파일 존재 여부 확인
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_path)
+        exists = blob_client.exists()
+        logger.info(f"파일 {blob_path} 존재 여부: {exists} (컨테이너: {container_name})")
+        return exists
+    except Exception as e:
+        logger.error(f"파일 존재 여부 확인 실패: {str(e)}")
+        return False
+
 class AssetListView(LoginRequiredMixin, ListView):
     """
     사용자의 3D 모델 에셋 목록을 보여주는 뷰
@@ -126,30 +153,48 @@ class AssetListView(LoginRequiredMixin, ListView):
                 # 직접 URL 업데이트
                 job_id = mesh_model.job_id
                 
+                # 디버깅을 위한 로깅 추가
+                logger.info(f"MeshModel 정보: job_id={job_id}, image_path={mesh_model.image_path}, fbx_path={mesh_model.fbx_path}")
+                
                 # 프롬프트 업데이트 (이미 존재하는 에셋의 경우)
                 if not asset.prompt and mesh_model.create_prompt:
                     asset.prompt = mesh_model.create_prompt
                 
-                # 썸네일 URL 가져오기 (previews 폴더에서 확인)
-                thumbnail_path = f"tasks/{job_id}/previews/preview.png"
-                logger.info(f"Checking thumbnail at path: {thumbnail_path}")
-                
-                # 클라우드 환경에서는 파일 존재 여부 확인 없이 URL 생성
-                # 스토리지 계정 이름과 컨테이너 이름은 AzureKeyManager에서 가져오거나 기본값 사용
+                # 스토리지 계정 이름과 컨테이너 이름 가져오기
                 storage_account_name = azure_keys.storage_account_name or "miravelledevstorage"
                 container_name = azure_keys.container_name or "meshy-3d-assets"
                 
-                # 썸네일 URL 생성 (SAS 토큰 없이)
-                asset.thumbnail_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/{thumbnail_path}"
-                logger.info(f"Thumbnail URL updated: {asset.thumbnail_url}")
-
-                # FBX 파일 URL 가져오기 (models 폴더에서 확인)
-                fbx_path = f"tasks/{job_id}/models/model.fbx"
-                logger.info(f"Checking FBX at path: {fbx_path}")
+                # 썸네일 파일 경로
+                thumbnail_path = f"tasks/{job_id}/previews/preview.png"
+                # 실제 파일 존재 여부 확인
+                thumbnail_exists = verify_blob_exists(thumbnail_path)
+                logger.info(f"썸네일 파일 존재 여부: {thumbnail_exists} (경로: {thumbnail_path})")
                 
-                # FBX URL 생성 (SAS 토큰 없이)
-                asset.fbx_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/{fbx_path}"
-                logger.info(f"FBX URL updated: {asset.fbx_url}")
+                # 썸네일 URL 설정
+                if mesh_model.image_path and mesh_model.image_path.startswith('http'):
+                    # 이미 전체 URL이 저장되어 있으면 그대로 사용
+                    asset.thumbnail_url = mesh_model.image_path
+                    logger.info(f"MeshModel.image_path 사용: {asset.thumbnail_url}")
+                elif thumbnail_exists:
+                    # 파일이 존재하면 URL 생성
+                    asset.thumbnail_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/{thumbnail_path}"
+                    logger.info(f"썸네일 URL 생성 (파일 존재): {asset.thumbnail_url}")
+                
+                # FBX 파일 경로
+                fbx_path = f"tasks/{job_id}/models/model.fbx"
+                # 실제 파일 존재 여부 확인
+                fbx_exists = verify_blob_exists(fbx_path)
+                logger.info(f"FBX 파일 존재 여부: {fbx_exists} (경로: {fbx_path})")
+                
+                # FBX URL 설정
+                if mesh_model.fbx_path and mesh_model.fbx_path.startswith('http'):
+                    # 이미 전체 URL이 저장되어 있으면 그대로 사용
+                    asset.fbx_url = mesh_model.fbx_path
+                    logger.info(f"MeshModel.fbx_path 사용: {asset.fbx_url}")
+                elif fbx_exists:
+                    # 파일이 존재하면 URL 생성
+                    asset.fbx_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/{fbx_path}"
+                    logger.info(f"FBX URL 생성 (파일 존재): {asset.fbx_url}")
 
                 asset.save()
             except Exception as e:
