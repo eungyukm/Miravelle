@@ -20,7 +20,25 @@
 
                 <div class="mb-3">
                     <label for="style_prompt" class="form-label">Style Prompt</label>
-                    <textarea id="style_prompt" name="style_prompt" class="form-control" required></textarea>
+                    <select id="style_prompt" name="style_prompt" class="form-select" required>
+                        <option value="realistic">Realistic style</option>
+                        <option value="fake-3d-cartoon">2.5D Cartoon style</option>
+                        <option value="japanese-anime">Japanese Anime style</option>
+                        <option value="cartoon-line-art">Cartoon Line Art style</option>
+                        <option value="realistic-hand-drawn">Realistic Hand-drawn style</option>
+                        <option value="fake-3d-hand-drawn">2.5D Hand-drawn style</option>
+                        <option value="oriental-comic-ink">Oriental Comic Ink style</option>
+                    </select>
+                </div>
+
+                <!-- 해상도 선택 추가 -->
+                <div class="mb-3">
+                    <label for="resolution" class="form-label">Resolution</label>
+                    <select id="resolution" name="resolution" class="form-select" required>
+                        <option value="1024">1024</option>
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
                 </div>
 
                 <!-- Start 버튼 -->
