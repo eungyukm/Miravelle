@@ -60,6 +60,9 @@
 
             <form id="meshForm">
                 {% csrf_token %}
+                <!-- 모델 생성 시 히든 필드에 저장-->
+                <input type="hidden" id="source_model_id" name="source_model_id" value="{{ source_model_id|default:'019588fb-d84d-7cc8-a6de-3f8019b73afe' }}">
+
                 <div class="mb-3">
                     <label for="prompt" class="form-label">Prompt</label>
                     <input type="text" id="prompt" name="prompt" class="form-control" required>
@@ -79,6 +82,9 @@
                     </button>
                 </div>
             </form>
+            <div class="d-grid mt-3">
+                <button id="textureBtn" class="btn btn-outline-dark">Apply Texture</button>
+            </div>
 
             <p id="error-message" class="text-danger mt-3"></p>
 
@@ -96,6 +102,9 @@
                     <source id="videoSource" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
+
+
+
                 <div class="d-grid mt-3">
                     <button id="publishBtn" class="btn btn-dark hidden">Publish</button>
                 </div>
@@ -109,7 +118,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const publishBtn = document.getElementById("publishBtn");
+    
     let currentJobId = null;
     localStorage.removeItem("currentJobId");
 
@@ -121,6 +130,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const thumbnail = document.getElementById("thumbnail");
     const video = document.getElementById("video");
     const videoSource = document.getElementById("videoSource");
+
+    const textureBtn = document.getElementById("textureBtn");
+    const sourceModelIdInput = document.getElementById("source_model_id");
+    const publishBtn = document.getElementById("publishBtn");
 
     function startProgressStream(jobId) {
         if (!jobId) return;
@@ -201,6 +214,17 @@ document.addEventListener("DOMContentLoaded", function () {
             currentJobId = data.job_id;
             if (currentJobId) startProgressStream(currentJobId);
         });
+    });
+
+    textureBtn.addEventListener("click", () => {
+        console.log("Redirecting to texture form...");
+        const taskId = sourceModelIdInput.value;
+        if (currentJobId) {
+            // 페이지 이동 처리
+            window.location.href = `/texture/model_texture_form/?task_id=${currentJobId}`;
+        } else {
+            alert("No task ID available!");
+        }
     });
 });
 </script>

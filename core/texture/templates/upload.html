@@ -10,7 +10,7 @@
             <form id="textureForm">
                 {% csrf_token %}
                 
-                <input type="hidden" id="source_model_id" name="source_model_id" value="{{ source_model_id|default:'019588fb-d84d-7cc8-a6de-3f8019b73afe' }}">
+                <input type="hidden" id="source_model_id" name="source_model_id" value="{{ source_model_id }}">
                 <input type="hidden" id="texture_task_id" name="texture_task_id" value="{{ texture_task_id }}">
 
                 <div class="mb-3">
@@ -75,6 +75,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const thumbnailSection = document.getElementById("thumbnailSection");
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
+    // URL에서 task_id 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentTaskId = urlParams.get("task_id"); 
+    console.log("Extracted taskId from URL:", currentTaskId);
+
     // 상태 스트리밍 시작 함수
     function startProgressStream(taskId) {
         console.log("Starting progress stream for task:", taskId);
@@ -96,22 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusText.textContent = `Status: ${data.status}`;
             }
 
-            // 완료되면 이미지 및 비디오 표시
+            // 작업 완료 시 이미지 및 비디오 표시
             if (data.status === "SUCCEEDED") {
+                console.log("Task completed successfully!");
                 if (data.thumbnail_url) {
                     thumbnail.src = data.thumbnail_url;
-
-                    // 표시(on) 처리
                     thumbnailSection.classList.remove('off');
                     thumbnailSection.classList.add('on');
-                }
-                if (data.video_url) {
-                    videoSource.src = data.video_url;
-                    video.load(); // 비디오 로드
-                    
-                    // 표시(on) 처리
-                    videoSection.classList.remove('off');
-                    videoSection.classList.add('on');
                 }
 
                 eventSource.close();
@@ -133,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
 
         startBtn.disabled = true;
+        statusText.textContent = "Starting texture processing...";
 
         const formData = new FormData(textureForm);
 
@@ -153,8 +150,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const data = await response.json();
+            console.log("Response Data:", data);
+
+            // 서버에서 반환된 작업 ID로 상태 스트리밍 시작
             if (data.texture_task_id) {
-                startProgressStream(data.texture_task_id);
+                // 서버에서 받은 작업 ID로 설정
+                currentTaskId = data.texture_task_id; 
+                console.log("Start Progress Stream with task ID:", currentTaskId);
+                startProgressStream(currentTaskId);
+            } else {
+                console.warn("No task ID returned from server");
             }
         } catch (error) {
             console.error("Error submitting form:", error);
@@ -162,11 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
             startBtn.disabled = false;
         }
     });
-
-    const taskId = "{{ texture_task_id }}";
-    if (taskId) {
-        startProgressStream(taskId);
-    }
 });
 </script>
 {% endblock %}

@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect
-from django.http import StreamingHttpResponse, JsonResponse, HttpResponseNotAllowed
+from django.http import StreamingHttpResponse, JsonResponse, HttpResponseNotAllowed, Http404
 from .models import TextureModel
+from workspace.models import MeshModel
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
 from utils.azure_key_manager import AzureKeyManager
 
 import requests
 import json
+from urllib.parse import unquote
 
 def model_texture_form(request):
     """
@@ -13,19 +16,15 @@ def model_texture_form(request):
     """
     if request.method == "GET":
         # 업로드 작업 ID
-        source_model_id = request.POST.get("source_model_id")
+        source_model_id = request.GET.get("task_id")
         print(f"source_model_id {source_model_id}")
-
-        # 텍스쳐링 작업 ID
-        texture_task_id = request.POST.get("texture_task_id")
-        print(f"texture_task_id {texture_task_id}")
 
         return render(request, "upload.html", {"source_model_id": source_model_id})
     else:
         # GET 외의 요청은 허용하지 않는다면 405 에러 응답
         return HttpResponseNotAllowed(["GET"])
 
-@csrf_exempt
+# @csrf_protect
 def model_texture_submit(request):
     if request.method == "POST":
         object_prompt = request.POST.get("object_prompt")
@@ -34,13 +33,48 @@ def model_texture_submit(request):
 
         # 값이 None이거나 비어있으면 오류 반환
         if not source_model_id:
+            print("Missing source_model_id")
             return JsonResponse({"error": "Missing source_model_id"}, status=400)
 
+        # 모델 객체 검색 (존재하지 않을 경우 404 처리)
+        try:
+            mesh = get_object_or_404(MeshModel, job_id=source_model_id)
+            print(f"Found MeshModel: {mesh.job_id}")
+            print(f"glb_path (raw): {mesh.glb_path}")
+        except Http404:
+            print(f"MeshModel with job_id {source_model_id} not found!")
+            return JsonResponse({"error": "MeshModel not found."}, status=404)
+
+        # URL 디코딩
+        model_url = unquote(str(mesh.glb_path.url)) if mesh.glb_path else None
+        print(f"Decoded Model URL: {model_url}")
+
+        # URL 수정 단계
+        if model_url:
+            # '/media/' 자동 추가 부분 제거
+            model_url = model_url.replace("/media/", "")
+
+            # 'https:/ ' → 'https://'로 변환
+            if model_url.startswith("https:/") and not model_url.startswith("https://"):
+                model_url = model_url.replace("https:/", "https://")
+
+            # 'https://media/' 잘못된 부분 제거
+            if model_url.startswith("https://media/"):
+                model_url = model_url.replace("https://media/", "https://")
+
+        # URL 값이 없으면 오류 반환
+        if not model_url:
+            print("Model URL not found")
+            return JsonResponse({"error": "Model URL is missing."}, status=400)
+
+        print(f"Final Model URL: {model_url}")
+
+        # Meshy API 호출 설정
         azure_keys = AzureKeyManager.get_instance()
         meshy_api_key = azure_keys.meshy_api_key
 
         payload = {
-            "model_url": f"https://cdn.meshy.ai/model/example_model_2.glb",
+            "model_url": model_url,
             "object_prompt": object_prompt,
             "style_prompt": style_prompt,
             "enable_original_uv": True,
@@ -65,13 +99,19 @@ def model_texture_submit(request):
             result = response.json()
             texture_task_id = result.get("result")
 
-            # JSON 형식으로 명확하게 반환
-            return JsonResponse({"texture_task_id": texture_task_id})
+            if not texture_task_id:
+                print("Failed to create texture task.")
+                return JsonResponse({"error": "Failed to create texture task."}, status=400)
+
+            return JsonResponse({
+                "texture_task_id": texture_task_id,
+                "status": "processing"
+            })
 
         except requests.exceptions.RequestException as e:
+            print(f"Meshy API Error: {e}")
             return JsonResponse({"error": str(e)}, status=400)
 
-    # 잘못된 메서드 요청 처리 (HTML 반환 방지)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 def check_status(request, task_id):
