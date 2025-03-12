@@ -1,21 +1,172 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<form action="{% url 'model_texture_submit' %}" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-    <!-- 업로드된 모델의 작업 아이디 -->
-    <input type="hidden" name="source_model_id" value="{{ source_model_id }}">
-    
-    <!-- 텍스처링 작업의 작업 아이디 -->
-    <input type="hidden" name="texture_task_id" value="{{ texture_task_id }}">
-    
-    <label>Object Prompt:</label>
-    <input type="text" name="object_prompt" required><br>
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="text-center mb-4">Texture Processing</h2>
 
-    <label>Style Prompt:</label>
-    <textarea name="style_prompt" required></textarea><br>
+            <!-- Form Section -->
+            <form id="textureForm">
+                {% csrf_token %}
+                
+                <input type="hidden" id="source_model_id" name="source_model_id" value="{{ source_model_id|default:'019588fb-d84d-7cc8-a6de-3f8019b73afe' }}">
+                <input type="hidden" id="texture_task_id" name="texture_task_id" value="{{ texture_task_id }}">
 
-    <button type="submit">텍스처 적용</button>
-</form>
-{% endblock content %}
+                <div class="mb-3">
+                    <label for="object_prompt" class="form-label">Object Prompt</label>
+                    <input type="text" id="object_prompt" name="object_prompt" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="style_prompt" class="form-label">Style Prompt</label>
+                    <textarea id="style_prompt" name="style_prompt" class="form-control" required></textarea>
+                </div>
+
+                <!-- Start 버튼 -->
+                <div class="d-grid">
+                    <button type="submit" id="startBtn" class="btn btn-dark">Start Texture</button>
+                </div>
+            </form>
+
+            <!-- Progress Bar -->
+            <div id="progressSection" class="hidden mt-4">
+                <p id="statusText" class="status-text">Waiting for processing...</p>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar">0%</div>
+                </div>
+            </div>
+
+            <!-- Thumbnail Section -->
+            <div id="thumbnailSection" class="off mt-4">
+                <h5>Generated Image</h5>
+                <img id="thumbnail" src="" class="img-fluid" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" alt="Generated Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS 추가 -->
+<style>
+/* 숨겨진 상태 (off) */
+.off {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* 표시 상태 (on) */
+.on {
+    display: block;
+    opacity: 1;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const textureForm = document.getElementById("textureForm");
+    const startBtn = document.getElementById("startBtn");
+    const progressBar = document.getElementById("progressBar");
+    const statusText = document.getElementById("statusText");
+    const progressSection = document.getElementById("progressSection");
+    
+    // 추가 요소
+    const thumbnail = document.getElementById("thumbnail");
+    const thumbnailSection = document.getElementById("thumbnailSection");
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+    // 상태 스트리밍 시작 함수
+    function startProgressStream(taskId) {
+        console.log("Starting progress stream for task:", taskId);
+        if (!taskId) return;
+
+        const eventSource = new EventSource(`/texture/stream/${taskId}/`);
+
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Received Data:", data);
+
+            if (data.progress !== undefined) {
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.progress}%`;
+                progressSection.classList.remove('hidden');
+            }
+
+            if (data.status) {
+                statusText.textContent = `Status: ${data.status}`;
+            }
+
+            // 완료되면 이미지 및 비디오 표시
+            if (data.status === "SUCCEEDED") {
+                if (data.thumbnail_url) {
+                    thumbnail.src = data.thumbnail_url;
+
+                    // 표시(on) 처리
+                    thumbnailSection.classList.remove('off');
+                    thumbnailSection.classList.add('on');
+                }
+                if (data.video_url) {
+                    videoSource.src = data.video_url;
+                    video.load(); // 비디오 로드
+                    
+                    // 표시(on) 처리
+                    videoSection.classList.remove('off');
+                    videoSection.classList.add('on');
+                }
+
+                eventSource.close();
+            }
+
+            if (["FAILED", "CANCELED"].includes(data.status)) {
+                eventSource.close();
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            console.error("Stream Error:", error);
+            eventSource.close();
+        };
+    }
+
+    // 폼 제출 처리
+    textureForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        startBtn.disabled = true;
+
+        const formData = new FormData(textureForm);
+
+        try {
+            const response = await fetch("{% url 'model_texture_submit' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": csrfToken
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                statusText.textContent = `Error: ${errorData.error}`;
+                startBtn.disabled = false;
+                return;
+            }
+
+            const data = await response.json();
+            if (data.texture_task_id) {
+                startProgressStream(data.texture_task_id);
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            statusText.textContent = `Error: ${error.message}`;
+            startBtn.disabled = false;
+        }
+    });
+
+    const taskId = "{{ texture_task_id }}";
+    if (taskId) {
+        startProgressStream(taskId);
+    }
+});
+</script>
+{% endblock %}
