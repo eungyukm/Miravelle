@@ -5,10 +5,14 @@ from workspace.models import MeshModel
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from utils.azure_key_manager import AzureKeyManager
+from users.models import User
 
 import requests
 import json
 from urllib.parse import unquote
+from django.utils.dateparse import parse_datetime
+from datetime import datetime, timezone
+
 
 def model_texture_form(request):
     """
@@ -27,9 +31,12 @@ def model_texture_form(request):
 # @csrf_protect
 def model_texture_submit(request):
     if request.method == "POST":
-        object_prompt = request.POST.get("object_prompt")
         style_prompt = request.POST.get("style_prompt")
+        print(f"style_prompt {style_prompt}")
+        art_style = request.POST.get("art_style")
+        print(f"art_style {art_style}")
         source_model_id = request.POST.get("source_model_id")
+        resolution = request.POST.get("resolution")
 
         # 값이 None이거나 비어있으면 오류 반환
         if not source_model_id:
@@ -69,6 +76,8 @@ def model_texture_submit(request):
 
         print(f"Final Model URL: {model_url}")
 
+        object_prompt = mesh.create_prompt
+
         # Meshy API 호출 설정
         azure_keys = AzureKeyManager.get_instance()
         meshy_api_key = azure_keys.meshy_api_key
@@ -79,9 +88,9 @@ def model_texture_submit(request):
             "style_prompt": style_prompt,
             "enable_original_uv": True,
             "enable_pbr": True,
-            "resolution": "1024",
+            "resolution": resolution,
             "negative_prompt": "low quality, low resolution, low poly, ugly",
-            "art_style": "realistic"
+            "art_style": art_style
         }
         headers = {
             "Authorization": f"Bearer {meshy_api_key}"
@@ -133,6 +142,44 @@ def check_status(request, task_id):
     except requests.exceptions.RequestException as e:
         return JsonResponse({"error": str(e)}, status=400)
 
+def save_mesh_data(data, user):
+    def convert_timestamp_to_iso(timestamp):
+        if timestamp:
+            # timestamp가 ms 단위이므로 초 단위로 변환 후 ISO 포맷으로 변환
+            return datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).isoformat()
+        return None
+
+    mesh = TextureModel(
+        user=user,
+        job_id=data.get('id'),
+        name=data.get('name', ''),
+        art_style=data.get('art_style', ''),
+        object_prompt=data.get('object_prompt', ''),
+        style_prompt=data.get('style_prompt', ''),
+        negative_prompt=data.get('negative_prompt', ''),
+        texture_prompt=data.get('texture_prompt', ''),
+        status=data.get('status', 'processing'),
+        progress=data.get('progress', 0),
+        task_error=data.get('task_error'),
+
+        # timestamp를 ISO 포맷 문자열로 변환 후 parse_datetime 호출
+        created_at=parse_datetime(convert_timestamp_to_iso(data.get('created_at'))),
+        started_at=parse_datetime(convert_timestamp_to_iso(data.get('started_at'))) if data.get('started_at') else None,
+        finished_at=parse_datetime(convert_timestamp_to_iso(data.get('finished_at'))) if data.get('finished_at') else None,
+        expires_at=parse_datetime(convert_timestamp_to_iso(data.get('expires_at'))) if data.get('expires_at') else None,
+
+        glb_url=data['model_urls'].get('glb'),
+        fbx_url=data['model_urls'].get('fbx'),
+        obj_url=data['model_urls'].get('obj'),
+        usdz_url=data['model_urls'].get('usdz'),
+        thumbnail_url=data.get('thumbnail_url'),
+
+        base_color_url=data['texture_urls'][0].get('base_color') if data.get('texture_urls') else None,
+        metallic_url=data['texture_urls'][0].get('metallic') if data.get('texture_urls') else None,
+        roughness_url=data['texture_urls'][0].get('roughness') if data.get('texture_urls') else None,
+        normal_url=data['texture_urls'][0].get('normal') if data.get('texture_urls') else None,
+    )
+    mesh.save()
 
 
 def texture_status_stream(request, task_id):
@@ -164,8 +211,17 @@ def texture_status_stream(request, task_id):
                         
                         yield f"data: {json.dumps({'progress': progress, 'status': status, 'thumbnail_url': thumbnail_url})}\n\n"
 
-                        # 상태 완료 시 종료
+                        # 완료 시 데이터 저장
                         if status in ["SUCCEEDED", "FAILED", "CANCELED"]:
+                            user_id = request.session.get('user_id')
+                            if not user_id:
+                                raise ValueError("User not authenticated")
+
+                            try:
+                                user = User.objects.get(id=user_id)
+                            except User.DoesNotExist:
+                                raise ValueError("User not found")
+                            save_mesh_data(data, user)
                             break
 
         except requests.exceptions.RequestException as e:
@@ -173,7 +229,32 @@ def texture_status_stream(request, task_id):
 
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
+def save_mesh_data(data, user):
+    mesh = TextureModel(
+        user=user,
+        job_id=data.get('id'),
+        name=data.get('name', ''),
+        art_style=data.get('art_style', ''),
+        object_prompt=data.get('object_prompt', ''),
+        style_prompt=data.get('style_prompt', ''),
+        negative_prompt=data.get('negative_prompt', ''),
+        texture_prompt=data.get('texture_prompt', ''),
+        status=data.get('status', 'processing'),
+        progress=data.get('progress', 0),
+        task_error=data.get('task_error'),
 
+        glb_url=data['model_urls'].get('glb'),
+        fbx_url=data['model_urls'].get('fbx'),
+        obj_url=data['model_urls'].get('obj'),
+        usdz_url=data['model_urls'].get('usdz'),
+        thumbnail_url=data.get('thumbnail_url'),
+
+        base_color_url=data['texture_urls'][0].get('base_color') if data.get('texture_urls') else None,
+        metallic_url=data['texture_urls'][0].get('metallic') if data.get('texture_urls') else None,
+        roughness_url=data['texture_urls'][0].get('roughness') if data.get('texture_urls') else None,
+        normal_url=data['texture_urls'][0].get('normal') if data.get('texture_urls') else None,
+    )
+    mesh.save()
 
 # ============================ 아래는 Test API 입니다. ============================
 def text_to_texture(request):

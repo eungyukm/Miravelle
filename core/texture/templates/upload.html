@@ -14,13 +14,13 @@
                 <input type="hidden" id="texture_task_id" name="texture_task_id" value="{{ texture_task_id }}">
 
                 <div class="mb-3">
-                    <label for="object_prompt" class="form-label">Object Prompt</label>
-                    <input type="text" id="object_prompt" name="object_prompt" class="form-control" required>
+                    <label for="style_prompt" class="form-label">style_prompt</label>
+                    <input type="text" id="style_prompt" name="style_prompt" data-style-prompt="prompt" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="style_prompt" class="form-label">Style Prompt</label>
-                    <select id="style_prompt" name="style_prompt" class="form-select" required>
+                    <label for="art_style" class="form-label">art_style</label>
+                    <select id="art_style" name="art_style" class="form-select" required>
                         <option value="realistic">Realistic style</option>
                         <option value="fake-3d-cartoon">2.5D Cartoon style</option>
                         <option value="japanese-anime">Japanese Anime style</option>
