@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.conf import settings
-from .models import TextureRequest
+from .models import TextureModel
 from .texture_utils import send_texture_request, MESHY_API_URL
 import requests
+
+from utils.azure_key_manager import AzureKeyManager
 
 
 """3D 모델 업로드 & API 요청 보내기"""
@@ -14,7 +16,7 @@ def upload_model(request):
         style_prompt = request.POST["style_prompt"]
 
         # DB에 저장
-        texture_request = TextureRequest.objects.create(
+        texture_request = TextureModel.objects.create(
             model_file=model_file,
             object_prompt=object_prompt,
             style_prompt=style_prompt
@@ -36,11 +38,13 @@ def upload_model(request):
 
 """작업 상태 조회"""
 def check_status(request, texture_id):
-    texture_request = TextureRequest.objects.get(id=texture_id)
+    texture_request = TextureModel.objects.get(id=texture_id)
+    azure_keys = AzureKeyManager.get_instance()
+    meshy_api_key = azure_keys.meshy_api_key  # 환경 변수에서 API 키 가져오기
 
     # Meshy API에서 상태 확인
     if texture_request.status == "processing":
-        headers = {"Authorization": f"Bearer {settings.MESHY_API_KEY}"}
+        headers = {"Authorization": f"Bearer {meshy_api_key}"}
         response = requests.get(f"{MESHY_API_URL}/{texture_request.task_id}", headers=headers)
         response.raise_for_status()
         data = response.json()
