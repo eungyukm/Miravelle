@@ -9,210 +9,203 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create a 3D Model</title>
+    <!-- Bootstrap CSS 추가 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
     <style>
         .hidden {
             display: none;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: auto;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .progress-bar {
-            width: 100%;
-            background-color: #ddd;
-            height: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .progress-bar div {
-            height: 100%;
-            width: 0;
-            background-color: #4caf50;
-            text-align: center;
-            line-height: 20px;
-            color: white;
         }
 
         #thumbnail {
             max-width: 100%;
             height: auto;
             margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         #video {
             max-width: 100%;
             margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .progress {
+            height: 20px;
+            margin-top: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #e9ecef;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4caf50;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+            width: 0;
+            transition: width 0.4s ease;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Create a 3D Model</h2>
 
-        <form id="meshForm">
-            {% csrf_token %}
-            <label for="prompt">Prompt:</label>
-            <input type="text" id="prompt" name="prompt" required>
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="text-center mb-4">Create a 3D Model</h2>
 
-            <label for="art_style">Art Style:</label>
-            <select id="art_style" name="art_style">
-                <option value="realistic">Realistic</option>
-                <option value="sculpture">Sculpture</option>
-            </select>
+            <form id="meshForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="prompt" class="form-label">Prompt</label>
+                    <input type="text" id="prompt" name="prompt" class="form-control" required>
+                </div>
 
-            <button type="submit" id="generateBtn">Generate Model</button>
+                <div class="mb-3">
+                    <label for="art_style" class="form-label">Art Style</label>
+                    <select id="art_style" name="art_style" class="form-select">
+                        <option value="realistic">Realistic</option>
+                        <option value="sculpture">Sculpture</option>
+                    </select>
+                </div>
 
-            <div id="loadingSpinner" class="hidden">
-                <p>Generating model, please wait...</p>
+                <div class="d-grid">
+                    <button type="submit" id="generateBtn" class="btn btn-dark">
+                        Generate Model
+                    </button>
+                </div>
+            </form>
+
+            <p id="error-message" class="text-danger mt-3"></p>
+
+            <!-- Progress bar -->
+            <div id="statusSection" class="hidden mt-4">
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar">0%</div>
+                </div>
             </div>
-        </form>
 
-        <p id="error-message" class="error"></p>
-
-        <div id="statusSection" class="hidden">
-            <div class="progress-bar">
-                <div id="progressBar">0%</div>
+            <!-- Preview section -->
+            <div id="previewSection" class="hidden mt-4">
+                <img id="thumbnail" class="img-fluid" alt="3D Model Thumbnail">
+                <video id="video" controls class="w-100 mt-3">
+                    <source id="videoSource" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="d-grid mt-3">
+                    <button id="publishBtn" class="btn btn-dark hidden">Publish</button>
+                </div>
             </div>
-        </div>
-
-        <div id="previewSection" class="hidden">
-            <img id="thumbnail" alt="3D Model Thumbnail">
-            <video id="video" controls>
-                <source id="videoSource" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
         </div>
     </div>
+</div>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let currentJobId = null;
-        localStorage.removeItem("currentJobId");
+<!-- Bootstrap JS 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-        // DOM 요소 가져오기
-        const statusSection = document.getElementById("statusSection");
-        const previewSection = document.getElementById("previewSection");
-        const progressBar = document.getElementById("progressBar");
-        const generateBtn = document.getElementById("generateBtn");
-        const loadingSpinner = document.getElementById("loadingSpinner");
-        const errorMessage = document.getElementById("error-message");
-        const thumbnail = document.getElementById("thumbnail");
-        const video = document.getElementById("video");
-        const videoSource = document.getElementById("videoSource");
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const publishBtn = document.getElementById("publishBtn");
+    let currentJobId = null;
+    localStorage.removeItem("currentJobId");
 
-        function startProgressStream(jobId) {
-            if (!jobId) return;
+    const statusSection = document.getElementById("statusSection");
+    const previewSection = document.getElementById("previewSection");
+    const progressBar = document.getElementById("progressBar");
+    const generateBtn = document.getElementById("generateBtn");
+    const errorMessage = document.getElementById("error-message");
+    const thumbnail = document.getElementById("thumbnail");
+    const video = document.getElementById("video");
+    const videoSource = document.getElementById("videoSource");
 
-            console.log("🔥 진행률 스트리밍 시작:", jobId);
-            const eventSource = new EventSource(`/workspace/${jobId}/stream/`);
+    function startProgressStream(jobId) {
+        if (!jobId) return;
 
-            eventSource.onmessage = function (event) {
-                try {
-                    const data = JSON.parse(event.data);
-                    console.log("🔥 스트리밍 데이터 수신:", data);
-
-                    if (data.progress !== undefined) {
-                        progressBar.style.width = `${data.progress}%`;
-                        progressBar.textContent = `${data.progress}%`;
-                        statusSection.style.display = "block";
-                    }
-
-                    if (["SUCCEEDED", "FAILED", "CANCELED"].includes(data.status)) {
-                        eventSource.close();
-                        if (data.status === "SUCCEEDED") {
-                            fetchMeshData(jobId);  // ✅ 100% 완료되면 get_mesh 실행
-                        } else {
-                            alert("❌ 모델 생성 실패!");
-                        }
-                    }
-                } catch (error) {
-                    console.error("❌ JSON 파싱 오류:", error);
-                }
-            };
-
-            eventSource.onerror = function () {
-                console.error("🔴 스트리밍 연결 오류. 3초 후 재시도...");
+        const eventSource = new EventSource(`/workspace/${jobId}/stream/`);
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.progress !== undefined) {
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.progress}%`;
+                statusSection.classList.remove('hidden');
+            }
+            if (["SUCCEEDED", "FAILED", "CANCELED"].includes(data.status)) {
                 eventSource.close();
-                setTimeout(() => startProgressStream(jobId), 3000);
-            };
-        }
+                if (data.status === "SUCCEEDED") {
+                    fetchMeshData(jobId);
+                }
+            }
+        };
+    }
 
-        function fetchMeshData(jobId) {
-            fetch(`/workspace/${jobId}/`)
-                .then(response => response.json())
-                .then(mesh => {
-                    console.log("Mesh data:", mesh);
-                    if (mesh.thumbnail_url) {
-                        thumbnail.src = mesh.thumbnail_url;
-                        thumbnail.style.display = "block";
-                    }
-                    if (mesh.video_url) {
-                        videoSource.src = mesh.video_url;
-                        video.load();
-                        video.style.display = "block";
-                    }
-                    previewSection.style.display = "block";
-                    alert("🎉 모델 생성 완료!");
-                })
-                .catch(error => {
-                    console.error("Error fetching mesh data:", error);
-                    alert("모델 데이터를 가져오는 중 오류가 발생했습니다.");
-                });
-        }
-
-        document.getElementById("meshForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            generateBtn.disabled = true;
-            generateBtn.innerText = "Generating...";
-            loadingSpinner.style.display = "block";
-            previewSection.classList.add("hidden");
-            errorMessage.innerText = "";
-
-            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-            const prompt = document.getElementById("prompt").value;
-            const artStyle = document.getElementById("art_style").value;
-
-            fetch("/workspace/api/generate_mesh/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                },
-                body: JSON.stringify({ prompt, art_style: artStyle })
-            })
+    function fetchMeshData(jobId) {
+        fetch(`/workspace/${jobId}/`)
             .then(response => response.json())
-            .then(data => {
-                generateBtn.disabled = false;
-                generateBtn.innerText = "Generate Model";
-                loadingSpinner.style.display = "none";
-
-                if (data.error) {
-                    errorMessage.innerText = data.error;
-                    return;
+            .then(mesh => {
+                if (mesh.thumbnail_url) {
+                    thumbnail.src = mesh.thumbnail_url;
+                    thumbnail.classList.remove('hidden');
                 }
-
-                currentJobId = data.job_id;
-                localStorage.setItem("currentJobId", currentJobId);
-                if (currentJobId) {
-                    startProgressStream(currentJobId);
+                if (mesh.video_url) {
+                    videoSource.src = mesh.video_url;
+                    video.load();
+                    video.classList.remove('hidden');
                 }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                errorMessage.innerText = "An error occurred.";
-                generateBtn.disabled = false;
-                generateBtn.innerText = "Generate Model";
-                loadingSpinner.style.display = "none";
+                
+                previewSection.classList.remove('hidden');
+                publishBtn.classList.remove('hidden');
+
+                publishBtn.onclick = () => publishArticle(jobId);
             });
+    }
+
+    function publishArticle(jobId) {
+        fetch(`/publish/${jobId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("Published successfully!");
+            }
+        });
+    }
+
+    document.getElementById("meshForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        generateBtn.disabled = true;
+        errorMessage.textContent = "";
+
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        const prompt = document.getElementById("prompt").value;
+        const artStyle = document.getElementById("art_style").value;
+
+        fetch("/workspace/api/generate_mesh/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({ prompt, art_style: artStyle })
+        })
+        .then(response => response.json())
+        .then(data => {
+            currentJobId = data.job_id;
+            if (currentJobId) startProgressStream(currentJobId);
         });
     });
-    </script>
+});
+</script>
+
 </body>
 </html>
+
 {% endblock %}

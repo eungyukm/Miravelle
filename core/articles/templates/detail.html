@@ -2,10 +2,11 @@
 
 {% block content %}
 <div class="container">
-    <h1>{{ article.title}}'s Detail</h1>
+    <h1>{{ article.title }}'s Detail</h1>
     
     <div class="card">
-        <img src="{{ article.image.url }}" class="card-img-top" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+        <!-- Three.js 렌더링 대상 -->
+        <div id="three-container" style="width: 100%; height: 600px;"></div>
         <div class="card-body">
             <h5 class="card-title">{{ article.title }}</h5>
             <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" style="display: inline-block; margin-right: 15px;">
@@ -18,7 +19,7 @@
                 <button type="submit" class="btn btn-outline-light">🤨</button>
                 <p class="card-text" style="display: inline-block;"><strong>{{ article.dislike_count }}</strong></p>
             </form>
-            <p class="card-text"><strong>Model prompt : </strong> {{ article.model_prompt }}</p>
+            <p class="card-text"><strong>Model prompt : </strong> {{ article.create_prompt }}</p>
             <p class="card-text"><strong>Texture prompt :</strong> {{ article.texture_prompt }}</p>
             <p class="card-text"><strong>Tags :</strong> {{ article.tags }}</p>
             <p class="card-text"><strong>Model seed :</strong> {{ article.model_seed }}</p>
@@ -28,4 +29,150 @@
         </div>
     </div>
 </div>
+
+<!-- Three.js & GLTFLoader -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+    // Three.js 기본 설정
+    const container = document.getElementById('three-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 0, 2.5);
+
+    // 배경 색상 설정
+    scene.background = new THREE.Color(0xeeeeee); // 밝은 회색 배경
+
+    // 배경 텍스처 추가
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('textures/background.jpg', (texture) => {
+        scene.background = texture;
+    });
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // 조명 추가
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+
+    let loadedModel = null;
+    let isDragging = false;
+    let isPanning = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    // GLB 파일 URL 동적 로드
+    const loader = new THREE.GLTFLoader();
+
+    async function loadModel() {
+        try {
+            const fileId = "{{ job_id }}"; // Django에서 UUID 전달
+            console.log('log: ', fileId);
+
+            const response = await fetch(`/utils/get_glb/${fileId}/`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch GLB URL: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const blobUrl = data.file_url;
+
+            console.log('Blob URL:', blobUrl);
+
+            loader.load(
+                blobUrl,
+                (gltf) => {
+                    const model = gltf.scene;
+                    scene.add(model);
+                    model.scale.set(0.5, 0.5, 0.5);
+                    loadedModel = model;
+                },
+                (xhr) => {
+                    console.log(`Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+                },
+                (error) => {
+                    console.error('GLTF Load Error:', error);
+                }
+            );
+        } catch (error) {
+            console.error('Failed to load model:', error);
+        }
+    }
+
+    // 모델 로드 실행
+    loadModel();
+
+    // 애니메이션 루프
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // 창 크기 변경 시 렌더러 크기 업데이트
+    window.addEventListener('resize', () => {
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+    });
+
+    // 마우스 드래그로 모델 회전 및 이동 처리
+    function onMouseDown(event) {
+        if (event.button === 0) {
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+            container.style.cursor = "grabbing";
+        } else if (event.button === 1) {
+            isPanning = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+            container.style.cursor = "move";
+        }
+    }
+
+    function onMouseMove(event) {
+        if (isDragging && loadedModel) {
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+            loadedModel.rotation.y += deltaX * 0.005;
+            loadedModel.rotation.x += deltaY * 0.005;
+        }
+
+        if (isPanning) {
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+            camera.position.x -= deltaX * 0.01;
+            camera.position.y += deltaY * 0.01;
+            camera.position.x = Math.max(-5, Math.min(5, camera.position.x));
+            camera.position.y = Math.max(0, Math.min(5, camera.position.y));
+        }
+
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+    }
+
+    function onMouseUp() {
+        isDragging = false;
+        isPanning = false;
+        container.style.cursor = "grab";
+    }
+
+    // 카메라 줌 (마우스 휠)
+    function onMouseWheel(event) {
+        event.preventDefault();
+        let zoomAmount = event.deltaY * 0.01;
+        let newDistance = camera.position.z + zoomAmount;
+        if (newDistance >= 2 && newDistance <= 10) {
+            camera.position.z = newDistance;
+        }
+    }
+
+    // 이벤트 리스너 추가
+    container.addEventListener("mousedown", onMouseDown);
+    container.addEventListener("mousemove", onMouseMove);
+    container.addEventListener("mouseup", onMouseUp);
+    container.addEventListener("wheel", onMouseWheel, { passive: false });
+
+</script>
 {% endblock %}

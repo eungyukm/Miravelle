@@ -2,6 +2,11 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from workspace.models import MeshModel
+from utils.azure_storage import upload_file, file_exists
+import logging
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
 class Asset(models.Model): #     ┌> 사용자 모델을 참조하는 설정                           ┌> = user.assets.all()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assets') # 사용자와 연결
@@ -31,6 +36,7 @@ class MeshAsset(models.Model):
     
     # 에셋 표시용 메타데이터
     title = models.CharField(max_length=255, blank=True)
+    prompt = models.TextField(blank=True)  # 프롬프트 저장
     thumbnail_url = models.URLField(blank=True)
     fbx_url = models.URLField(blank=True)
     
@@ -45,10 +51,14 @@ class MeshAsset(models.Model):
 
     def update_urls(self):
         """Azure Blob Storage URLs 업데이트"""
-        from utils.azure_storage import get_blob_url
-        
-        job_id = self.mesh_model.job_id
-        self.thumbnail_url = get_blob_url(f"{job_id}/thumbnail.jpg")
-        self.fbx_url = get_blob_url(f"{job_id}/model.fbx")
-        self.last_url_update = timezone.now()
-        self.save()
+        try:
+            job_id = self.mesh_model.job_id
+            logger.info(f"MeshAsset.update_urls() 메서드는 더 이상 사용되지 않습니다. AssetListView에서 직접 URL을 업데이트합니다.")
+            logger.info(f"Job ID: {job_id}의 URL 업데이트를 시도했습니다.")
+            
+            # 이 메서드는 더 이상 사용되지 않으므로 아무 작업도 수행하지 않습니다.
+            # 실제 URL 업데이트는 AssetListView.get_context_data()에서 수행됩니다.
+            
+        except Exception as e:
+            logger.error(f"Error in deprecated update_urls for {self.mesh_model.job_id}: {e}")
+            raise

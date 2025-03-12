@@ -60,7 +60,11 @@ LOGIN_URL = "/users/login/"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-STATIC_URL = '/static/'
+STATIC_URL = ""
+if IS_LOCAL_ENV:
+    STATIC_URL = "/static/"
+else:
+    STATIC_URL = f"https://miravelledevstorage.blob.core.windows.net/staticfiles/"
 
 # 정적 파일 경로 설정
 STATICFILES_DIRS = [
@@ -94,8 +98,10 @@ INSTALLED_APPS = [
     "texture", # 텍스처 작업 공간 앱
 
     # DRF & Swagger
-    # "rest_framework",
-    # "drf_yasg",
+    "rest_framework",
+    "drf_yasg",
+
+    'storages',
 ]
 
 MIDDLEWARE = [

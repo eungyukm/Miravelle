@@ -46,19 +46,49 @@ class Article(models.Model):
     user_id = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="articles"
         ) # 유저 아이디
-    job_id = models.ForeignKey(MeshModel, on_delete=models.CASCADE, null=True) # 작업 아이디
     title = models.CharField(max_length=255) # 게시글 제목
     created_at = models.DateTimeField(auto_now_add=True) # 생성 시간
     tags = models.CharField(max_length=100, blank=True)
     model_prompt = models.TextField()
     texture_prompt = models.TextField()
     model_seed = models.IntegerField(unique=True) # 타이틀의 고유 번호
+
+    job = models.OneToOneField(
+        MeshModel,
+        on_delete=models.CASCADE,
+        related_name='article',
+        null=True,
+        blank=True
+    )
+
+    status = models.CharField(max_length=50, default="processing")
+    create_prompt = models.TextField(blank=True, null=True)
+    image_path = models.FileField(blank=True, null=True)
+    video_path = models.FileField(blank=True, null=True)
+    fbx_path = models.FileField(blank=True, null=True)
+    glb_path = models.FileField(blank=True, null=True)
+    obj_path = models.FileField(blank=True, null=True)
+    usdz_path = models.FileField(blank=True, null=True)
+    metadata_path = models.FileField(blank=True, null=True)
+
     
     
     # model_seed는 정한 범위값 내에서 랜덤으로 부여(중복 허용 X)
     def save(self, *args, **kwargs):
-        if not self.model_seed:  # 값이 없을 때만 생성
+        if not self.model_seed:
             self.model_seed = self.generate_unique_model_seed()
+
+        if self.job:
+            self.status = self.job.status
+            self.create_prompt = self.job.create_prompt
+            self.image_path = self.job.image_path
+            self.video_path = self.job.video_path
+            self.fbx_path = self.job.fbx_path
+            self.glb_path = self.job.glb_path
+            self.obj_path = self.job.obj_path
+            self.usdz_path = self.job.usdz_path
+            self.metadata_path = self.job.metadata_path
+
         super().save(*args, **kwargs)
 
     def generate_unique_model_seed(self):
@@ -67,7 +97,9 @@ class Article(models.Model):
             if not Article.objects.filter(model_seed=number).exists():
                 return number
             
-
+    def __str__(self):
+        return f"{self.title} - {self.status}"
+    
 # Like 모델
 class Like(models.Model):
     """

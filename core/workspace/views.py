@@ -39,7 +39,12 @@ def generate_mesh(request):
 
         if response_data and "result" in response_data:
             job_id = response_data["result"]
-            MeshModel.objects.create(user=request.user, job_id=job_id, status="processing")
+            MeshModel.objects.create(
+                user=request.user, 
+                job_id=job_id, 
+                status="processing",
+                create_prompt=prompt  # 프롬프트 정보 저장
+            )
             return JsonResponse({"job_id": job_id, "message": "Mesh 생성 시작!"})
 
         return JsonResponse({"error": "API 요청 실패"}, status=500)
