@@ -8,6 +8,7 @@ import requests
 from utils.azure_key_manager import AzureKeyManager
 
 import requests
+import json
 from django.http import JsonResponse, HttpResponseNotAllowed
 
 def model_texture_form(request):
@@ -82,7 +83,7 @@ def check_status(request, texture_id):
     return JsonResponse({"status": texture_request.status, "result_url": texture_request.result_url})
 
 
-# 아래는 Test API 입니다.
+# ============================ 아래는 Test API 입니다. ============================
 def text_to_texture(request):
     azure_keys = AzureKeyManager.get_instance()
     meshy_api_key = azure_keys.meshy_api_key  # 환경 변수에서 API 키 가져오기
@@ -136,4 +137,52 @@ def check_texture_status(request):
         return JsonResponse(response.json())
     except requests.exceptions.RequestException as e:
         # 요청이 실패한 경우 에러 메시지를 반환
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+def texuring_streaming(request):
+    """
+    테스트용 뷰: Meshy.ai 스트리밍 API를 호출해보고
+    status가 완료(SUCCEEDED/FAILED/CANCELED)될 때까지
+    데이터를 받아온 뒤 마지막 상태를 반환.
+    """
+    azure_keys = AzureKeyManager.get_instance()
+    meshy_api_key = azure_keys.meshy_api_key
+    task_id = "019588fb-d84d-7cc8-a6de-3f8019b73afe"
+
+    headers = {
+        "Authorization": f"Bearer {meshy_api_key}",
+        "Accept": "text/event-stream"
+    }
+
+    url = f"https://api.meshy.ai/openapi/v1/text-to-texture/{task_id}/stream"
+
+    final_data = None
+    try:
+        with requests.get(url, headers=headers, stream=True) as response:
+            response.raise_for_status()  # 4xx, 5xx 에러시 예외 발생
+
+            # 스트리밍 응답을 한 줄씩 읽어옴
+            for line in response.iter_lines():
+                if line and line.startswith(b'data:'):
+                    # 앞의 'data:'를 제외하고 JSON 디코딩
+                    data_str = line.decode('utf-8')[5:]
+                    data = json.loads(data_str)
+
+                    # 콘솔에서 실시간 확인
+                    print("Received Data:", data)
+
+                    # 예: 상태가 완료되면 중단
+                    if data.get('status') in ['SUCCEEDED', 'FAILED', 'CANCELED']:
+                        final_data = data
+                        break
+
+        # 모두 읽고 나면, 혹은 중간에 break된 후 최종 상태를 반환
+        if final_data is not None:
+            return JsonResponse({"final_status": final_data['status'], "data": final_data})
+        else:
+            return JsonResponse({"info": "Streaming ended or no final status found."})
+
+    except requests.exceptions.RequestException as e:
+        # HTTPError, ConnectionError 등 모든 requests 예외 처리
         return JsonResponse({"error": str(e)}, status=400)
