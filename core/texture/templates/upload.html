@@ -3,6 +3,13 @@
 {% block content %}
 <form action="{% url 'model_texture_submit' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
+    
+    <!-- 업로드된 모델의 작업 아이디 -->
+    <input type="hidden" name="source_model_id" value="{{ source_model_id }}">
+    
+    <!-- 텍스처링 작업의 작업 아이디 -->
+    <input type="hidden" name="texture_task_id" value="{{ texture_task_id }}">
+    
     <label>Object Prompt:</label>
     <input type="text" name="object_prompt" required><br>
 

@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from django.conf import settings
 from .models import TextureModel
 from .texture_utils import send_texture_request, MESHY_API_URL
-import requests
+from django.urls import reverse
+from urllib.parse import urlencode
 
 from utils.azure_key_manager import AzureKeyManager
 
@@ -16,7 +17,15 @@ def model_texture_form(request):
     GET 요청이 들어왔을 때, 업로드 폼을 보여주는 역할만 수행
     """
     if request.method == "GET":
-        return render(request, "upload.html")  # HTML 폼(예: upload.html)
+        # 업로드 작업 ID
+        source_model_id = request.POST.get("source_model_id")
+        print(f"source_model_id {source_model_id}")
+
+        # 텍스쳐링 작업 ID
+        texture_task_id = request.POST.get("texture_task_id")
+        print(f"texture_task_id {texture_task_id}")
+
+        return render(request, "upload.html", {"source_model_id": source_model_id})
     else:
         # GET 외의 요청은 허용하지 않는다면 405 에러 응답
         return HttpResponseNotAllowed(["GET"])
@@ -29,6 +38,10 @@ def model_texture_submit(request):
         # 예: object_prompt, style_prompt 등 폼 필드를 받아 처리
         object_prompt = request.POST.get("object_prompt")
         style_prompt = request.POST.get("style_prompt")
+
+        # 업로드 작업 ID
+        source_model_id = request.POST.get("source_model_id")
+        print(source_model_id)
 
         azure_keys = AzureKeyManager.get_instance()
         meshy_api_key = azure_keys.meshy_api_key
@@ -54,7 +67,17 @@ def model_texture_submit(request):
                 json=payload,
             )
             response.raise_for_status()
-            return JsonResponse(response.json(), safe=False)
+            print(f"response.json {response.json()}")
+
+            result = response.json()
+            texture_task_id = result.get("result")
+
+            url = reverse('model_texture_form')
+            query_params = urlencode({
+                'texture_task_id': texture_task_id
+            })
+
+            return redirect(f"{url}?{query_params}")
         except requests.exceptions.HTTPError as e:
             return JsonResponse({"error": str(e)}, status=400)
 
