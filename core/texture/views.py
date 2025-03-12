@@ -7,6 +7,8 @@ import requests
 
 from utils.azure_key_manager import AzureKeyManager
 
+import requests
+from django.http import JsonResponse
 
 """3D 모델 업로드 & API 요청 보내기"""
 def upload_model(request):
@@ -55,3 +57,60 @@ def check_status(request, texture_id):
         texture_request.save()
 
     return JsonResponse({"status": texture_request.status, "result_url": texture_request.result_url})
+
+
+# 아래는 Test API 입니다.
+def text_to_texture(request):
+    azure_keys = AzureKeyManager.get_instance()
+    meshy_api_key = azure_keys.meshy_api_key  # 환경 변수에서 API 키 가져오기
+
+    payload = {
+        "model_url": "https://cdn.meshy.ai/model/example_model_2.glb",
+        "object_prompt": "a monster mask",
+        "style_prompt": "red fangs, Samurai outfit that fused with japanese batik style",
+        "enable_original_uv": True,
+        "enable_pbr": True,
+        "resolution": "1024",
+        "negative_prompt": "low quality, low resolution, low poly, ugly",
+        "art_style": "realistic"
+    }
+    headers = {
+        "Authorization": f"Bearer {meshy_api_key}"
+    }
+
+    try:
+        response = requests.post(
+            "https://api.meshy.ai/openapi/v1/text-to-texture",
+            headers=headers,
+            json=payload,
+        )
+        response.raise_for_status()  # 오류 시 requests.exceptions.HTTPError 발생
+        # response.json() 내용 확인을 위해 print
+        print(response.json())
+        # 최종적으로 Django view에서는 JSON 형태로 결과를 반환
+        return JsonResponse(response.json(), safe=False)
+
+    except requests.exceptions.HTTPError as e:
+        # 요청이 실패했을 경우, 에러 메시지와 함께 반환
+        return JsonResponse({"error": str(e)}, status=400)
+    
+def check_texture_status(request):
+    azure_keys = AzureKeyManager.get_instance()
+    meshy_api_key = azure_keys.meshy_api_key
+    
+    # 테스팅할 때 아래 변경해야 할 수 도 있음
+    task_id = "019588fb-d84d-7cc8-a6de-3f8019b73afe"
+    headers = {
+        "Authorization": f"Bearer {meshy_api_key}"
+    }
+
+    try:
+        response = requests.get(
+            f"https://api.meshy.ai/openapi/v1/text-to-texture/{task_id}",
+            headers=headers,
+        )
+        response.raise_for_status()  # 4xx, 5xx 에러시 예외 발생
+        return JsonResponse(response.json())
+    except requests.exceptions.RequestException as e:
+        # 요청이 실패한 경우 에러 메시지를 반환
+        return JsonResponse({"error": str(e)}, status=400)
