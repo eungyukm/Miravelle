@@ -102,6 +102,10 @@ INSTALLED_APPS = [
     "drf_yasg",
 
     'storages',
+
+    # PostgreSQL
+    'pgtest', # PostgreSQL 테스트용 앱
+
 ]
 
 MIDDLEWARE = [
@@ -147,7 +151,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'miravelle_test',
         'USER': 'miravelle_user',
-        'PASSWORD': 'your_password',
+        'PASSWORD': 'admin1234',
         'HOST': 'localhost',
         'PORT': '5432',
     }
