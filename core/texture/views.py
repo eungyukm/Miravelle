@@ -8,35 +8,58 @@ import requests
 from utils.azure_key_manager import AzureKeyManager
 
 import requests
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 
-"""3D 모델 업로드 & API 요청 보내기"""
-def upload_model(request):
+def model_texture_form(request):
+    """
+    GET 요청이 들어왔을 때, 업로드 폼을 보여주는 역할만 수행
+    """
+    if request.method == "GET":
+        return render(request, "upload.html")  # HTML 폼(예: upload.html)
+    else:
+        # GET 외의 요청은 허용하지 않는다면 405 에러 응답
+        return HttpResponseNotAllowed(["GET"])
+
+def model_texture_submit(request):
+    """
+    POST 요청(폼 전송)이 들어왔을 때, 실제로 텍스쳐 작업 API 호출 후 결과를 반환
+    """
     if request.method == "POST":
-        model_file = request.FILES["model_file"]
-        object_prompt = request.POST["object_prompt"]
-        style_prompt = request.POST["style_prompt"]
+        # 예: object_prompt, style_prompt 등 폼 필드를 받아 처리
+        object_prompt = request.POST.get("object_prompt")
+        style_prompt = request.POST.get("style_prompt")
 
-        # DB에 저장
-        texture_request = TextureModel.objects.create(
-            model_file=model_file,
-            object_prompt=object_prompt,
-            style_prompt=style_prompt
-        )
+        azure_keys = AzureKeyManager.get_instance()
+        meshy_api_key = azure_keys.meshy_api_key
 
-        # API 요청
-        model_url = request.build_absolute_uri(texture_request.model_file.url)
-        response = send_texture_request(model_url, object_prompt, style_prompt)
+        payload = {
+            "model_url": "https://cdn.meshy.ai/model/example_model_2.glb",
+            "object_prompt": object_prompt,
+            "style_prompt": style_prompt,
+            "enable_original_uv": True,
+            "enable_pbr": True,
+            "resolution": "1024",
+            "negative_prompt": "low quality, low resolution, low poly, ugly",
+            "art_style": "realistic"
+        }
+        headers = {
+            "Authorization": f"Bearer {meshy_api_key}"
+        }
 
-        # task_id 저장
-        texture_request.task_id = response.get("task_id")
-        texture_request.status = "processing"
-        texture_request.save()
+        try:
+            response = requests.post(
+                "https://api.meshy.ai/openapi/v1/text-to-texture",
+                headers=headers,
+                json=payload,
+            )
+            response.raise_for_status()
+            return JsonResponse(response.json(), safe=False)
+        except requests.exceptions.HTTPError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
-        return redirect("check_status", texture_request.id)  # 상태 확인 페이지로 이동
-
-    return render(request, "upload.html")  # HTML 폼 제공
-
+    else:
+        # POST 외의 요청은 허용하지 않는다면 405 에러 응답
+        return HttpResponseNotAllowed(["POST"])
 
 """작업 상태 조회"""
 def check_status(request, texture_id):
