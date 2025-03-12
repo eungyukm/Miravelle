@@ -141,12 +141,16 @@ WSGI_APPLICATION = "core.wsgi.application"
 # 개발/배포 환경 구분 
 IS_PRODUCTION = os.environ.get('AZURE_WEBSITE_NAME') is not None 
 
-# 추후에 PostgreSQL로 전환 (권장)
+# PostgreSQL로 전환
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:' if IS_PRODUCTION else os.path.join(BASE_DIR, 'db.sqlite3'),
-    } # 메모리 기반 DB, 만약 로컬 서버라면 db.sqlite3
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'miravelle_test',
+        'USER': 'miravelle_user',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
 
 # File Permissions
