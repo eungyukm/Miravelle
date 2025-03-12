@@ -8,6 +8,7 @@ azure-storage-blob==12.24.1
 certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
+colorama==0.4.6
 comm==0.2.2
 cryptography==44.0.2
 debugpy==1.8.12
@@ -40,6 +41,7 @@ platformdirs==4.3.6
 portalocker==2.10.1
 prompt_toolkit==3.0.50
 psutil==7.0.0
+psycopg2-binary==2.9.10
 ptyprocess==0.7.0
 pure_eval==0.2.3
 pycparser==2.22
@@ -48,11 +50,13 @@ PyJWT==2.10.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2025.1
+pywin32==308
 PyYAML==6.0.2
 pyzmq==26.2.1
 requests==2.32.3
 six==1.17.0
 sqlparse==0.5.3
+sseclient-py==1.8.0
 stack-data==0.6.3
 tornado==6.4.2
 traitlets==5.14.3
