@@ -92,14 +92,6 @@ def get_mesh(request, mesh_id):
     thumbnail_url = response_data.get("thumbnail_url")
     video_url = response_data.get("video_url")
 
-    # DB에 저장 (없을 경우만)
-    # if thumbnail_url and not mesh.image_url:
-    #     mesh.image_url = thumbnail_url
-    # if video_url and not mesh.video_url:
-    #     mesh.video_url = video_url
-    # mesh.status = "completed"
-    # mesh.save()
-
     upload_blob_in_thread(request, response_data)
 
     return JsonResponse({
@@ -108,3 +100,45 @@ def get_mesh(request, mesh_id):
         "thumbnail_url": thumbnail_url,
         "video_url": video_url
     })
+
+def refine_mesh(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            mesh_id = data.get("mesh_id")
+            
+            print(f"Received mesh_id: {mesh_id}")  # 값 확인용 로그
+
+            if not mesh_id:
+                return JsonResponse({"error": "mesh_id가 필요합니다."}, status=400)
+
+            payload = {
+                "mode": "refine",
+                "preview_task_id": mesh_id,
+                "enable_pbr": True,
+            }
+
+            # 메서드 및 엔드포인트 정의
+            endpoint = "/openapi/v2/text-to-3d"
+            method = "POST"
+
+            # API 호출
+            response = call_meshy_api(endpoint=endpoint, method=method, payload=payload)
+
+            print(f"API Response: {response}")  # API 응답 확인용 로그
+
+            # 응답 처리
+            if response and "result" in response:
+                job_id = response.get("result")
+                return JsonResponse({"job_id": job_id}, status=200)
+            else:
+                return JsonResponse({"error": "API 호출 실패"}, status=400)
+
+        except json.JSONDecodeError as e:
+            print(f"JSON Decode Error: {e}")  # JSON 파싱 오류 로그 출력
+            return JsonResponse({"error": "잘못된 JSON 형식입니다."}, status=400)
+        except Exception as e:
+            print(f"Unhandled Error: {e}")  # 기타 오류 로그 출력
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "POST 요청만 허용됩니다."}, status=405)

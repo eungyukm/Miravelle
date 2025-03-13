@@ -83,6 +83,10 @@
                 </div>
             </form>
 
+            <div class="d-grid mt-3">
+                <button id="refineBtn" class="btn btn-dark">Refine Mesh</button>
+            </div>
+
             <p id="error-message" class="text-danger mt-3"></p>
 
             <!-- Progress bar -->
@@ -99,7 +103,7 @@
                     <source id="videoSource" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
-
+                
                 <div class="d-grid mt-3">
                     <button id="textureBtn" class="btn btn-outline-dark">Apply Texture</button>
                 </div>
@@ -133,6 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const textureBtn = document.getElementById("textureBtn");
     const sourceModelIdInput = document.getElementById("source_model_id");
     const publishBtn = document.getElementById("publishBtn");
+    const refineBtn = document.getElementById("refineBtn");
 
     function startProgressStream(jobId) {
         if (!jobId) return;
@@ -225,6 +230,37 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("No task ID available!");
         }
     });
+
+    refineBtn.addEventListener("click", () => {
+        refineMesh(currentJobId);
+    });
+
+    async function refineMesh(jobId) {
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        try {
+            const response = await fetch('/workspace/refine_mesh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ mesh_id: jobId })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API 호출 실패: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Job ID:', data.job_id);
+            currentJobId = data.job_id;
+            alert(`Mesh refinement started. Job ID: ${data.job_id}`);
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error: ${error.message}`);
+        }
+    }
+
 });
 </script>
 
