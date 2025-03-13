@@ -32,6 +32,8 @@ urlpatterns = [
 
     path("publish/", include("model_storage.urls")),
 
+    path('api/v1/', include('api_v1.urls')),
+
     # main page
     path("", include("articles.urls")),
 

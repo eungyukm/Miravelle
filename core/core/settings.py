@@ -102,6 +102,9 @@ INSTALLED_APPS = [
     "drf_yasg",
 
     'storages',
+
+    # API v1
+    'api_v1',
 ]
 
 MIDDLEWARE = [
