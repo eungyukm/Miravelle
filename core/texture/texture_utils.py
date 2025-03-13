@@ -2,12 +2,16 @@ import requests  # HTTP 요청을 보내기 위한 라이브러리
 
 """Meshy API에 요청을 보내고, 작업 ID를 받아옴"""
 import requests
-from workspace.meshy_utils import call_meshy_api
+from django.conf import settings
+from utils.azure_key_manager import AzureKeyManager
 
 MESHY_API_URL = "https://api.meshy.ai/openapi/v1/text-to-texture"
-API_KEY = call_meshy_api  # utils 앱에서 AzureKeyManager가 API 데려옴
+
 
 def send_texture_request(model_url, object_prompt, style_prompt):
+    azure_keys = AzureKeyManager.get_instance()
+    API_KEY = azure_keys.meshy_api_key  # 환경 변수에서 API 키 가져오기
+
     payload = {
         "model_url": model_url,
         "object_prompt": object_prompt,

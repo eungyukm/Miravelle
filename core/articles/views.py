@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, get_object_or_404 , redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin # 로그인한 사용자만 특정 view에 접근할 수 있음
@@ -6,12 +7,22 @@ from django.http import HttpResponseForbidden # error 403(서버에 요청은 �
 from .forms import ArticleForm
 from django.db import DatabaseError
 
+from workspace.models import MeshModel
+
+def get_image_url(article):
+    if article.image_path:
+        if article.image_path.name.startswith('http'):
+            return article.image_path.name
+        return article.image_path.url
+    return None
+
+
 # 게시글 목록 보기
 class ArticleList(View):
     def get(self, request):
         try:
             article_list = Article.objects.all()
-
+        
             if not article_list.exists():
                 article_list = None
 
@@ -116,8 +127,19 @@ class ArticleDetail(LoginRequiredMixin, View):
 
     def get(self, request, id):
         article = get_object_or_404(Article, pk=id)
+
+        # job_id 값 추출
+        job_string = str(article.job) if article.job else ""   # 문자열로 변환
+        job_match = re.search(r'[0-9a-fA-F-]{36}', job_string)
+        job_id = job_match.group(0) if job_match else None
+
+        # 서버 측 로그 출력
+        print(f"[LOG] Article ID: {id}")
+        print(f"[LOG] Extracted job_id: {job_id}")
+
         content = {
-            "article": article
+            "article": article,
+            "job_id": job_id,  # job_id 값만 템플릿에 전달
         }
         return render(request, "detail.html", content)
         

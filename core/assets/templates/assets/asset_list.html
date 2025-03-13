@@ -36,11 +36,7 @@
         <div class="col d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="text-dark mb-0">My 3D Assets</h2>
-                <p class="text-muted mb-0">내가 생성한 3D 모델링 에셋 목록입니다.</p>
             </div>
-            <a href="{% url 'assets:asset_create' %}" class="btn btn-outline-dark">
-                <i class="bi bi-plus-lg"></i> 새 에셋 생성
-            </a>
         </div>
     </div>
 
@@ -57,21 +53,22 @@
                 {% endif %}
                 
                 <div class="card-body px-0 pt-3 pb-4">
-                    <h2 class="h5 mb-1">{{ asset.title }}</h2>
-                    <p class="text-muted small">업로드: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
+                    <h2 class="h5 mb-1">Mesh {{ asset.mesh_model.job_id|slice:":8" }}</h2>
+                    <p class="text-muted">프롬프트: {{ asset.prompt|default:"정보 없음" }}</p>
+                    <p class="text-muted small">생성일: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
                     
                     <div class="mt-2">
                         {% if asset.fbx_url %}
                         <a href="{{ asset.fbx_url }}" 
                            class="btn btn-sm btn-outline-dark me-2" 
                            download>
-                            다운로드
+                            <i class="bi bi-download"></i> 다운로드
                         </a>
                         {% endif %}
                         
                         <button onclick="deleteMeshAsset('{{ asset.mesh_model.job_id }}')" 
                                 class="btn btn-sm btn-outline-dark">
-                            삭제
+                            <i class="bi bi-trash"></i> 삭제
                         </button>
                     </div>
                 </div>
@@ -80,44 +77,6 @@
         {% empty %}
         <div class="col-12">
             <p class="text-muted">메시 생성 에셋이 없습니다.</p>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- 업로드된 에셋 -->
-    <h2 class="h4 mt-5 mb-4">업로드된 테스트 에셋</h2>
-    <div class="row g-4">
-        {% for asset in assets %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card border-0">
-                {% if asset.thumbnail %}
-                <img src="{{ asset.thumbnail.url }}" 
-                     class="card-img-top" 
-                     alt="{{ asset.title }}"
-                     style="height: 200px; object-fit: cover;">
-                {% endif %}
-                
-                <div class="card-body px-0 pt-3 pb-4">
-                    <h3 class="h5 mb-1">{{ asset.title }}</h3>
-                    <p class="text-muted small">업로드: {{ asset.created_at|date:"Y.m.d" }}</p>
-                    
-                    <div class="mt-2">
-                        <button onclick="deleteAsset('{{ asset.id }}')" 
-                                class="btn btn-sm btn-outline-dark me-2">
-                            삭제
-                        </button>
-                        
-                        <a href="{{ asset.file_path }}" 
-                           class="btn btn-sm btn-outline-dark">
-                            다운로드
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <p class="text-muted">업로드된 에셋이 없습니다.</p>
         </div>
         {% endfor %}
     </div>
@@ -135,29 +94,6 @@ function deleteMeshAsset(jobId) {
         .then(response => response.json())
         .then(data => {
             if (data.job_id) {
-                window.location.reload();
-            } else {
-                alert('삭제 중 오류가 발생했습니다.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('삭제 중 오류가 발생했습니다.');
-        });
-    }
-}
-
-function deleteAsset(assetId) {
-    if (confirm('정말 이 에셋을 삭제하시겠습니까?')) {
-        fetch(`/assets/${assetId}/delete/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.asset_id) {
                 window.location.reload();
             } else {
                 alert('삭제 중 오류가 발생했습니다.');

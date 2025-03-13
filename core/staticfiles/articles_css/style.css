@@ -1,0 +1,241 @@
+/* 전체 스타일 (Global Styles) */
+body {
+    font-family: sans-serif; /* 글꼴 설정 (깔끔한 글꼴) */
+    background-color: #ffffff; /* 배경색 설정 (흰색) */
+    color: #343a40; /* 글자색 설정 (진한 회색) */
+}
+
+/* 버튼 스타일 (Buttons) */
+.btn-custom {
+    background-color: white; /* 배경색 설정 (흰색) */
+    color: black; /* 글자색 설정 (검은색) */
+    border: 1px solid #ced4da; /* 테두리 설정 (얇은 회색 선) */
+    border-radius: 5px; /* 테두리 둥글게 만들기 */
+    margin-top: 15px; /* 위쪽 여백 */
+    margin-bottom: 0px; /* 아래쪽 여백 */
+    padding: 8px 12px; /* 안쪽 여백 (글자와 테두리 사이 간격) */
+    display: flex; /* Flexbox 사용 (내용 정렬에 유용) */
+    justify-content: space-between; /* 내용 양쪽으로 정렬 */
+    align-items: center; /* 내용 수직 가운데 정렬 */
+    transition: background-color 0.3s ease; /* 호버 효과 (마우스 올렸을 때 부드럽게 색 변화) */
+}
+
+.btn-custom:hover {
+    background-color: #e9ecef; /* 마우스 올렸을 때 배경색 변경 (더 연한 회색) */
+}
+
+.btn-custom i {
+    margin-left: 5px; /* 아이콘과 글자 사이 간격 */
+}
+
+/* 레이아웃 스타일 (Layout) */
+html, body {
+    height: 100%; /* 높이를 100%로 설정 (화면 전체 채우기) */
+    margin: 0; /* 바깥쪽 여백 없애기 */
+    padding: 0; /* 안쪽 여백 없애기 */
+}
+
+.wrapper {
+    display: flex; /* Flexbox 사용 */
+    flex-direction: column; /* 내용 세로로 쌓기 */
+    min-height: 100vh; /* 최소 높이를 100vh로 설정 (화면 전체 채우기) */
+}
+
+.container {
+    margin-top: 20px; /* 위쪽 여백 */
+}
+
+.container-fluid {
+    flex: 1; /* 내용이 많아지면 자동으로 늘어나도록 설정 */
+}
+
+/* 카드 스타일 (Cards) - 게시글 목록에 보이는 카드 형태 */
+.card {
+    margin-top: 20px; /* 위쪽 여백 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+    padding: 10px; /* 안쪽 여백 */
+    border: 1px solid rgba(0, 0, 0, 0.125); /* 얇은 테두리 */
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05); /* 그림자 효과 */
+}
+/* main에 보일 카드*/
+.main-card {
+    margin-top: 20px; /* 위쪽 여백 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+    padding: 10px; /* 안쪽 여백 */
+    border: 1px solid rgba(0, 0, 0, 0.125); /* 얇은 테두리 */
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05); /* 그림자 효과 */
+}
+/* main 이미지 */
+.main-card-img-top {
+    background-color: #f0f0f0; /* 배경색 (연한 회색, 이미지 없을 때 표시) */
+    height: 300px; /* 높이 설정 */
+    display: static; /* Flexbox 사용 */
+    justify-content: center; /* 내용 가로 가운데 정렬 */
+    align-items: center; /* 내용 세로 가운데 정렬 */
+    margin-bottom: 50px; /* 아래쪽 여백 */
+    overflow: hidden; /* 이미지가 넘치면 숨기기 */
+}
+
+/* 게시글 상세 카드 설정 */
+.detail-card {
+    display: flex;
+    width: 100%; /* 너비 100% */
+    margin-top: 15px; /* 위쪽 여백 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+    padding: 10px; /* 안쪽 여백 */
+    border: 1px solid rgba(0, 0, 0, 0.125); /* 얇은 테두리 */
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05); /* 그림자 효과 */
+}
+.card-img-top {
+    background-color: #f0f0f0; /* 배경색 (연한 회색, 이미지 없을 때 표시) */
+    height: 500px; /* 높이 설정 */
+    display: flex; /* Flexbox 사용 */
+    justify-content: center; /* 내용 가로 가운데 정렬 */
+    align-items: center; /* 내용 세로 가운데 정렬 */
+    margin-bottom: 50px; /* 아래쪽 여백 */
+    overflow: hidden; /* 이미지가 넘치면 숨기기 */
+}
+
+.card-img-top img {
+    max-width: 100%; /* 최대 너비 100% (카드 너비에 맞춤) */
+    max-height: 100%; /* 최대 높이 100% (카드 높이에 맞춤) */
+    object-fit: contain; /* 이미지 비율 유지하면서 카드 안에 맞춤 */
+}
+
+
+.card-title {
+    font-size: 24px; /* 글꼴 크기 */
+    text-align: center; /* 글자 왼쪽 정렬 */
+    margin-bottom: 0.5rem; /* 아래쪽 여백 */
+}
+
+.card-text {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 20px; /* 글꼴 크기 */
+    color: rgb(0, 0, 0); /* 글자색 (검정색) */
+}
+
+
+/* 빈 이미지 영역 스타일 (Placeholder Image) - 이미지가 없을 때 보여주는 부분 */
+.placeholder-image {
+    width: 100%; /* 너비 100% */
+    height: 200px; /* 높이 설정 */
+    background-color: #f0f0f0; /* 배경색 (연한 회색) */
+    border: 1px solid #ddd; /* 테두리 */
+    display: flex; /* Flexbox 사용 */
+    justify-content: center; /* 내용 가로 가운데 정렬 */
+    align-items: center; /* 내용 세로 가운데 정렬 */
+    color: #aaa; /* 글자색 (흐린 회색) */
+    margin-bottom: 10px; /* 아래쪽 여백 */
+}
+
+.placeholder-image svg {
+    width: 100%; /* SVG 아이콘 너비 */
+    height: 100%; /* SVG 아이콘 높이 */
+}
+
+
+/* 로그인 폼 스타일 */
+.login-main-container {
+    display: static; /* Flexbox 사용 */
+    justify-content: center; /* 내용 가로 가운데 정렬 */
+    align-items: center; /* 내용 세로 가운데 정렬 */
+    margin-top: 0px; /* 위쪽 여백 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+    min-height: 100vh; /* 최소 높이를 100vh로 설정*/
+}
+
+.login-container {
+    width: 100%; /* 너비 설정 (화면의 30%) */
+    padding: 40px; /* 안쪽 여백 */
+    background-color: #ffffff; /* 배경색 (흰색) */
+    border-radius: 20px; /* 테두리 둥글게 만들기 */
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+    margin-top: 100px; /* 위쪽 여백 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+}
+
+/* 회원가입 폼 스타일 */
+.register-main-container {
+    display: flex; /* Flexbox 사용 */
+    justify-content: center; /* 내용 가로 가운데 정렬 */
+    align-items: center; /* 내용 세로 가운데 정렬 */
+    margin-top: 40px; /* 위쪽 여백 */
+    margin-bottom: 40px; /* 아래쪽 여백 */
+}
+
+.register-container {
+    width: 30%; /* 너비 설정 (화면의 30%) */
+    padding: 40px; /* 안쪽 여백 */
+    background-color: #fff; /* 배경색 (흰색) */
+    border-radius: 20px; /* 테두리 둥글게 만들기 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+}
+
+/* 폼 필드 스타일 (Form Field Adjustments) */
+#id_username,
+#id_surname,
+#id_password1,
+#id_password2,
+#id_email {
+    width: 100%; /* 너비 100% (부모 요소에 꽉 채우기) */
+}
+
+#messageform1 textarea {
+    width: 100%; /* 너비 100% */
+    height: 120px; /* 높이 설정 */
+}
+
+/* 반응형 디자인 (Media Queries) - 화면 크기에 따라 스타일 변경 */
+
+/* 작은 화면 (최대 768px) */
+@media (max-width: 768px) {
+    .login-container,
+    .register-container {
+        width: 80%; /* 너비 80% */
+        padding: 20px; /* 안쪽 여백 줄이기 */
+    }
+    
+    .card {
+        margin-top: 10px; /* 위쪽 여백 줄이기 */
+        margin-bottom: 15px; /* 아래쪽 여백 줄이기 */
+        padding: 8px; /* 안쪽 여백 줄이기 */
+    }
+    
+    .container {
+        margin-top: 10px; /* 위쪽 여백 줄이기 */
+    }
+    .card-img-top {
+        height: 150px; /* 카드 이미지 높이 줄이기 */
+    }
+}
+
+/* 더 작은 화면 (최대 576px) */
+@media (max-width: 576px) {
+    .login-container,
+    .register-container {
+        width: 95%; /* 너비 95% (거의 화면 전체) */
+    }
+    .card-img-top {
+        height: 120px; /* 카드 이미지 높이 더 줄이기 */
+    }
+}
+/* login 오류 메시지 설정 */
+.alert-danger {
+    padding-top: 0.5rem;   /* 위쪽 패딩 줄이기 */
+    padding-bottom: 0.5rem;  /* 아래쪽 패딩 줄이기 */
+    line-height: 1.2; /* 줄 간격 줄이기 */
+}
+/* 푸터 스타일 (Footer) - 웹페이지 맨 아래 부분 */
+footer {
+    position: static; /* 위치 설정 : 기본값, 문서 흐름 유지 */
+    bottom: 0; /* 아래쪽에 고정 */
+    width: 100%; /* 너비 100% */
+    margin-top: 15px; /* 위쪽 여백 */
+    margin-bottom: 10px; /* 아래쪽 여백 */
+    padding: 1rem 0; /* 위아래 여백 */
+    text-align: center; /* 글자 가운데 정렬 */
+    color: #6c757d; /* 글자색 (흐린 회색) */
+}

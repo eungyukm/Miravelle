@@ -4,60 +4,67 @@
 <div class="wrapper">
     <div class="container-fluid">
         <div class="row">
-            <!--Left button-->
+            <!-- Left Buttons -->
             <div class="col-md-3">
-                    <button class="btn-custom w-100" onclick="location.href='create/'">
-                        Create to text ✏️ <i class="fas fa-file"></i>
-                    </button>
-                
-                <button class="btn-custom w-100">Create to image 📷<i class="fas fa-image"></i></button>
+                <button class="btn-custom w-100" onclick="location.href='create/'">
+                    Create to text ✏️ <i class="fas fa-file"></i>
+                </button>
+                <button class="btn-custom w-100">
+                    Create to image 📷 <i class="fas fa-image"></i>
+                </button>
             </div>
     
-            <!-- Image Gallery (Right) -->
+            <!-- Image Gallery -->
             <div class="col-md-9">
                 <div class="row">
-                    {% if article_list %} <!--게시글이 있다면-->
+                    {% if article_list %}
                         {% for article in article_list %}
                         <div class="col-md-4">
                             <div class="main-card">
-                                <a style="color: black;" href="{% url 'articles:articledetail' article.pk %}">
-                                <!--이미지 관련 로직-->
-                                <div class="main-card-img-top">
-                                    {% if article.image %}
-                                    <img src="{{ article.image.url }}" class="fas fa-image fa-5x object-fit: contain;"></img>
-                                    {% else %}
-                                        No Image
-                                    {% endif %}
-                                </div>
-                                <!--게시글 목록에 표시될 로직-->
-                                <div>
-                                    <!--좋아요 버튼과 개수-->
-                                    <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" style="display: inline-block; margin-right: 15px;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-light">❤️</button>
-                                        <p class="card-text" style="display: inline-block;"><strong>{{ article.like_count }}</strong></p>
-                                    </form>
-                                    <!--싫어요 버튼과 개수-->
-                                    <form method="post" action="{% url "articles:articlelike" article.pk "🤨" %}" style="display: inline-block; margin-right: 10px;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-light">🤨</button>
-                                        <p class="card-text" style="display: inline-block;"><strong>{{ article.dislike_count }}</strong></p>
-                                    </form>
-                                </div>
-                                <!--게시글 목록에 표시될 작성자 ID와 Job ID-->
-                                <div class="card-body">
-                                    <p class="card-content">
-                                        User ID : {{ article.user_id }}<br>
-                                        Job ID : {{ article.job_id}}
-                                    </p>
-                                </div>
+                                <a style="color: inherit; text-decoration: none;" href="{% url 'articles:articledetail' article.pk %}">
+                                    <!-- Image Handling -->
+                                    <div class="main-card-img-top">
+                                        {% if article.image_path %}
+                                            {% if article.image_path.name|slice:":4" == "http" %}
+                                                <img src="{{ article.image_path.name }}" class="preview-image" alt="Preview Image">
+                                            {% else %}
+                                                <img src="{{ article.image_path.url }}" class="preview-image" alt="Preview Image">
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="placeholder-image">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Like/Dislike -->
+                                    <div class="interaction-area">
+                                        <form method="post" action="{% url "articles:articlelike" article.pk "❤️" %}" class="inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-like">❤️</button>
+                                            <span class="like-count">{{ article.like_count }}</span>
+                                        </form>
+                                        <form method="post" action="{% url "articles:articlelike" article.pk "🤨" %}" class="inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-dislike">🤨</button>
+                                            <span class="dislike-count">{{ article.dislike_count }}</span>
+                                        </form>
+                                    </div>
+
+                                    <!-- Meta Info -->
+                                    <div class="card-body">
+                                        <p class="card-content">
+                                            <strong>User ID:</strong> {{ article.user_id }}<br>
+                                            <strong>Job ID:</strong> {{ article.job_id }}
+                                        </p>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                         {% endfor %}
-                    <!--article_list에 아무런 값도 없을 시-->
                     {% else %}
-                        <div class="col-md-4">
-                            <p>No article.</p>
+                        <div class="col-md-12">
+                            <p class="no-articles">No articles available.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -66,64 +73,158 @@
     </div>
 </div>
 
-{% comment %} <style>
+<!-- CSS -->
+<style>
+    /* Container Styling */
     .container {
-        margin-top: 20px; 
+        margin-top: 20px;
     }
-    .card {
-        margin-top: 15px;
+
+    /* Card Styling */
+    .main-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         margin-bottom: 20px;
-        padding: 10px;
+        position: relative;
     }
-    .card-img-top {
-        background-color: #f0f0f0; /* Placeholder gray color */
+
+    .main-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Image Handling */
+    .main-card-img-top {
+        width: 100%;
         height: 200px;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-bottom: 10px;
-    }
-    .card-title {
-        font-size: 16px;
-        text-align: left;
-    }
-    /* 왼쪽 버튼 설정*/
-    .btn-custom {
-        background-color: white;
-        color: black;
-        border: 1px solid #ced4da;
-        border-radius: 5px;
-        margin-top: 15px;
-        margin-bottom: 0px;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        background-color: #f0f0f0;
+        overflow: hidden;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
     }
 
-    .btn-custom:hover {
-        background-color: #e9ecef; /* Light gray on hover */
+    .preview-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
     }
 
-    .btn-custom i {
-        margin-left: 5px; /* Space between text and icon */
+    .preview-image:hover {
+        transform: scale(1.05);
     }
+
     .placeholder-image {
         width: 100%;
-        height: 200px; /* Adjust as needed */
-        background-color: #f0f0f0;
-        border: 1px solid #ddd;
+        height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #aaa;
-        margin-bottom: 10px; /* Added spacing between images */
+        font-size: 36px;
+        background-color: #e0e0e0;
+        border-radius: 12px;
     }
 
-    .placeholder-image svg {
-        width: 50%; /* Adjust size as needed */
-        height: 50%;
+    /* Card Body Styling */
+    .card-body {
+        padding: 16px;
     }
 
-</style> {% endcomment %}
+    .card-content {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    /* Interaction Area */
+    .interaction-area {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 16px;
+        background-color: #fafafa;
+        border-top: 1px solid #eee;
+    }
+
+    .inline-form {
+        display: flex;
+        align-items: center;
+        margin-right: 8px;
+    }
+
+    .btn-like,
+    .btn-dislike {
+        background-color: transparent;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .btn-like:hover,
+    .btn-dislike:hover {
+        transform: scale(1.2);
+    }
+
+    .like-count,
+    .dislike-count {
+        font-size: 14px;
+        margin-left: 4px;
+        color: #555;
+    }
+
+    /* Left Button Styling */
+    .btn-custom {
+        background-color: #f8f9fa;
+        color: #333;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 12px;
+        width: 100%;
+        font-size: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-custom:hover {
+        background-color: #e9ecef;
+    }
+
+    .btn-custom i {
+        margin-left: 8px;
+    }
+
+    /* No Articles Message */
+    .no-articles {
+        text-align: center;
+        font-size: 18px;
+        color: #888;
+        margin-top: 20px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .main-card-img-top {
+            height: 160px;
+        }
+
+        .btn-custom {
+            font-size: 14px;
+        }
+
+        .card-content {
+            font-size: 12px;
+        }
+    }
+</style>
 {% endblock %}

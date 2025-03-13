@@ -1,17 +1,190 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <label>3D 모델 (GLB):</label>
-    <input type="file" name="model_file" required><br>
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="text-center mb-4">Texture Processing</h2>
 
-    <label>Object Prompt:</label>
-    <input type="text" name="object_prompt" required><br>
+            <!-- Form Section -->
+            <form id="textureForm">
+                {% csrf_token %}
+                
+                <input type="hidden" id="source_model_id" name="source_model_id" value="{{ source_model_id }}">
+                <input type="hidden" id="texture_task_id" name="texture_task_id" value="{{ texture_task_id }}">
 
-    <label>Style Prompt:</label>
-    <textarea name="style_prompt" required></textarea><br>
+                <div class="mb-3">
+                    <label for="style_prompt" class="form-label">style_prompt</label>
+                    <input type="text" id="style_prompt" name="style_prompt" data-style-prompt="prompt" class="form-control" required>
+                </div>
 
-    <button type="submit">텍스처 적용</button>
-</form>
-{% endblock content %}
+                <div class="mb-3">
+                    <label for="art_style" class="form-label">art_style</label>
+                    <select id="art_style" name="art_style" class="form-select" required>
+                        <option value="realistic">Realistic style</option>
+                        <option value="fake-3d-cartoon">2.5D Cartoon style</option>
+                        <option value="japanese-anime">Japanese Anime style</option>
+                        <option value="cartoon-line-art">Cartoon Line Art style</option>
+                        <option value="realistic-hand-drawn">Realistic Hand-drawn style</option>
+                        <option value="fake-3d-hand-drawn">2.5D Hand-drawn style</option>
+                        <option value="oriental-comic-ink">Oriental Comic Ink style</option>
+                    </select>
+                </div>
+
+                <!-- 해상도 선택 추가 -->
+                <div class="mb-3">
+                    <label for="resolution" class="form-label">Resolution</label>
+                    <select id="resolution" name="resolution" class="form-select" required>
+                        <option value="1024">1024</option>
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
+                </div>
+
+                <!-- Start 버튼 -->
+                <div class="d-grid">
+                    <button type="submit" id="startBtn" class="btn btn-dark">Start Texture</button>
+                </div>
+            </form>
+
+            <!-- Progress Bar -->
+            <div id="progressSection" class="hidden mt-4">
+                <p id="statusText" class="status-text">Waiting for processing...</p>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar">0%</div>
+                </div>
+            </div>
+
+            <!-- Thumbnail Section -->
+            <div id="thumbnailSection" class="off mt-4">
+                <h5>Generated Image</h5>
+                <img id="thumbnail" src="" class="img-fluid" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" alt="Generated Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS 추가 -->
+<style>
+/* 숨겨진 상태 (off) */
+.off {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* 표시 상태 (on) */
+.on {
+    display: block;
+    opacity: 1;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const textureForm = document.getElementById("textureForm");
+    const startBtn = document.getElementById("startBtn");
+    const progressBar = document.getElementById("progressBar");
+    const statusText = document.getElementById("statusText");
+    const progressSection = document.getElementById("progressSection");
+    
+    // 추가 요소
+    const thumbnail = document.getElementById("thumbnail");
+    const thumbnailSection = document.getElementById("thumbnailSection");
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+    // URL에서 task_id 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentTaskId = urlParams.get("task_id"); 
+    console.log("Extracted taskId from URL:", currentTaskId);
+
+    // 상태 스트리밍 시작 함수
+    function startProgressStream(taskId) {
+        console.log("Starting progress stream for task:", taskId);
+        if (!taskId) return;
+
+        const eventSource = new EventSource(`/texture/stream/${taskId}/`);
+
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Received Data:", data);
+
+            if (data.progress !== undefined) {
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.progress}%`;
+                progressSection.classList.remove('hidden');
+            }
+
+            if (data.status) {
+                statusText.textContent = `Status: ${data.status}`;
+            }
+
+            // 작업 완료 시 이미지 및 비디오 표시
+            if (data.status === "SUCCEEDED") {
+                console.log("Task completed successfully!");
+                if (data.thumbnail_url) {
+                    thumbnail.src = data.thumbnail_url;
+                    thumbnailSection.classList.remove('off');
+                    thumbnailSection.classList.add('on');
+                }
+
+                eventSource.close();
+            }
+
+            if (["FAILED", "CANCELED"].includes(data.status)) {
+                eventSource.close();
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            console.error("Stream Error:", error);
+            eventSource.close();
+        };
+    }
+
+    // 폼 제출 처리
+    textureForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        startBtn.disabled = true;
+        statusText.textContent = "Starting texture processing...";
+
+        const formData = new FormData(textureForm);
+
+        try {
+            const response = await fetch("{% url 'model_texture_submit' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": csrfToken
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                statusText.textContent = `Error: ${errorData.error}`;
+                startBtn.disabled = false;
+                return;
+            }
+
+            const data = await response.json();
+            console.log("Response Data:", data);
+
+            // 서버에서 반환된 작업 ID로 상태 스트리밍 시작
+            if (data.texture_task_id) {
+                // 서버에서 받은 작업 ID로 설정
+                currentTaskId = data.texture_task_id; 
+                console.log("Start Progress Stream with task ID:", currentTaskId);
+                startProgressStream(currentTaskId);
+            } else {
+                console.warn("No task ID returned from server");
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            statusText.textContent = `Error: ${error.message}`;
+            startBtn.disabled = false;
+        }
+    });
+});
+</script>
+{% endblock %}
