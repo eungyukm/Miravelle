@@ -5,10 +5,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
+from rest_framework.decorators import api_view
 from utils.azure_key_manager import AzureKeyManager
 
-class MeshyTextTo3DView(APIView):
+class Generate3DPreview(APIView):
+    @swagger_auto_schema(
+        operation_id="generate_3d_preview",
+        manual_parameters=[
+            openapi.Parameter('task_id', openapi.IN_PATH, description="Task ID", type=openapi.TYPE_STRING)
+        ],
+        responses={200: "3D preview generated"}
+    )
     def get(self, request, task_id):
 
         azure_keys = AzureKeyManager.get_instance()
@@ -23,8 +30,8 @@ class MeshyTextTo3DView(APIView):
             return Response(response.json(), status=status.HTTP_200_OK)
         except requests.exceptions.RequestException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-class Generate3DView(APIView):
+
+class Refine3DPreview(APIView):
     @swagger_auto_schema(
         operation_description="Generate 3D model using Meshy AI",
         request_body=openapi.Schema(
@@ -92,7 +99,8 @@ class Generate3DView(APIView):
             return Response(response.json(), status=response.status_code)
         except requests.exceptions.RequestException as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
 class List3DModelsView(APIView):
     @swagger_auto_schema(
         operation_description="List generated 3D models",

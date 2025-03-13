@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import MeshyTextTo3DView, Generate3DView, List3DModelsView
+from .views import Generate3DPreview, Refine3DPreview, List3DModelsView
 
 urlpatterns = [
-    path('text-to-3d/<str:task_id>/', MeshyTextTo3DView.as_view(), name='meshy-text-to-3d'),
-    path('generate-3d/', Generate3DView.as_view(), name='generate-3d'),
-    path('list-3d-models/', List3DModelsView.as_view(), name='list-3d-models'),
+    path("generate/<str:task_id>/", Generate3DPreview.as_view(), name="generate-3d-preview"),
+    path("refine/", Refine3DPreview.as_view(), name="refine-3d-preview"),
+    path("list/", List3DModelsView.as_view(), name="list-3d-preview"),
 ]
