@@ -66,7 +66,7 @@ def stream_mesh_progress(request, mesh_id):
                 data = json.loads(line[5:])
                 yield f"data: {json.dumps({'progress': data['progress'], 'status': data['status']})}\n\n"
                 if data["status"] in ["SUCCEEDED", "FAILED"]:
-                    break  # 🔹 성공 또는 실패하면 스트리밍 종료
+                    break  # 성공 또는 실패하면 스트리밍 종료
 
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
@@ -142,3 +142,37 @@ def refine_mesh(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "POST 요청만 허용됩니다."}, status=405)
+
+@login_required
+def stream_refine_mesh_progress(request, mesh_id):
+    """진행률 SSE(서버 전송 이벤트) 스트리밍"""
+    def event_stream():
+        response = call_meshy_api(f"/openapi/v2/text-to-3d/{mesh_id}/stream", stream=True)
+        if not response:
+            yield f"data: {json.dumps({'error': 'API 응답 없음'})}\n\n"
+            return
+
+        for line in response.iter_lines():
+            if line.startswith(b"data:"):
+                data = json.loads(line[5:])
+                
+                # 반환할 데이터 구성
+                job_data = {
+                    "job_id": data.get("id"),
+                    "status": data.get("status"),
+                    "thumbnail_url": data.get("thumbnail_url", ""),
+                    "progress": data.get("progress", 0),
+                    "started_at": data.get("started_at"),
+                    "finished_at": data.get("finished_at"),
+                    "task_error": (data.get("task_error") or {}).get("message", "")  # 수정된 부분
+                }
+                
+                # 스트리밍 응답 반환
+                yield f"data: {json.dumps(job_data)}\n\n"
+                
+                # 상태가 성공 또는 실패일 경우 스트리밍 종료
+                if data["status"] in ["SUCCEEDED", "FAILED"]:
+                    break
+
+    # 스트리밍 반환
+    return StreamingHttpResponse(event_stream(), content_type="text/event-stream")

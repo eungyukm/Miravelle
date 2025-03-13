@@ -10,4 +10,5 @@ urlpatterns = [
     path("<str:mesh_id>/stream/", views.stream_mesh_progress, name="stream_mesh_progress"),  # 진행률 스트리밍
 
     path("refine_mesh", views.refine_mesh, name="refine_mesh"),
+    path("<str:mesh_id>/refine_stream/", views.stream_refine_mesh_progress, name="stream_refine_mesh_progress"),
 ]

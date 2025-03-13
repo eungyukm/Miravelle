@@ -103,7 +103,7 @@
                     <source id="videoSource" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
-                
+                <img id="refineThumbnail" class="img-fluid" alt="3D Model refineThumbnail">
                 <div class="d-grid mt-3">
                     <button id="textureBtn" class="btn btn-outline-dark">Apply Texture</button>
                 </div>
@@ -131,6 +131,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const generateBtn = document.getElementById("generateBtn");
     const errorMessage = document.getElementById("error-message");
     const thumbnail = document.getElementById("thumbnail");
+    const refineThumbnail = document.getElementById("refineThumbnail");
+
     const video = document.getElementById("video");
     const videoSource = document.getElementById("videoSource");
 
@@ -138,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sourceModelIdInput = document.getElementById("source_model_id");
     const publishBtn = document.getElementById("publishBtn");
     const refineBtn = document.getElementById("refineBtn");
+    
 
     init();
 
@@ -264,11 +267,49 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log('Job ID:', data.job_id);
             currentJobId = data.job_id;
             alert(`Mesh refinement started. Job ID: ${data.job_id}`);
+            refineMeshProgressStream(data.job_id);
         } catch (error) {
             console.error('Error:', error);
             alert(`Error: ${error.message}`);
         }
     }
+
+    function refineMeshProgressStream(jobId) {
+        if (!jobId) return;
+        const eventSource = new EventSource(`/workspace/${jobId}/refine_stream/`);
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.progress !== undefined) {
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.progress}%`;
+                statusSection.classList.remove('hidden');
+            }
+            if (["SUCCEEDED", "FAILED", "CANCELED"].includes(data.status)) {
+                eventSource.close();
+                if (data.status === "SUCCEEDED") {
+                    console.log("good!")
+                    console.log(data);
+                    if(data.thumbnail_url) {
+                        refineThumbnail.src = data.thumbnail_url;    
+                    }
+                }
+                else {
+                    console.log("doing!!")
+                }
+            }
+        };
+    }
+
+    // function fetchRefineMeshData(jobId) {
+    //     fetch(`/workspace/${jobId}/`)
+    //         .then(response => response.json())
+    //         .then(mesh => {
+    //             if (mesh.thumbnail_url) {
+    //                 // thumbnail.src = mesh.thumbnail_url;
+    //                 console.log("mesh.thumbnail_url : ", mesh.thumbnail_url)
+    //             }
+    //         });
+    // }
 
     function setRefineBtnState(isEnabled) {
         refineBtn.disabled = !isEnabled;
