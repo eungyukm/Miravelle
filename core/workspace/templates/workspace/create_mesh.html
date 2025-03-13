@@ -139,6 +139,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const publishBtn = document.getElementById("publishBtn");
     const refineBtn = document.getElementById("refineBtn");
 
+    init();
+
+    function init() {
+        setRefineBtnState(false);
+    }
+
     function startProgressStream(jobId) {
         if (!jobId) return;
 
@@ -154,6 +160,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 eventSource.close();
                 if (data.status === "SUCCEEDED") {
                     fetchMeshData(jobId);
+
+                    // RefineBtn 활성화
+                    setRefineBtnState(true);
                 }
             }
         };
@@ -258,6 +267,15 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
             console.error('Error:', error);
             alert(`Error: ${error.message}`);
+        }
+    }
+
+    function setRefineBtnState(isEnabled) {
+        refineBtn.disabled = !isEnabled;
+        if (isEnabled) {
+            refineBtn.classList.remove('disabled');
+        } else {
+            refineBtn.classList.add('disabled');
         }
     }
 
