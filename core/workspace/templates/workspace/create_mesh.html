@@ -300,17 +300,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     }
 
-    // function fetchRefineMeshData(jobId) {
-    //     fetch(`/workspace/${jobId}/`)
-    //         .then(response => response.json())
-    //         .then(mesh => {
-    //             if (mesh.thumbnail_url) {
-    //                 // thumbnail.src = mesh.thumbnail_url;
-    //                 console.log("mesh.thumbnail_url : ", mesh.thumbnail_url)
-    //             }
-    //         });
-    // }
-
     function setRefineBtnState(isEnabled) {
         refineBtn.disabled = !isEnabled;
         if (isEnabled) {
@@ -319,7 +308,6 @@ document.addEventListener("DOMContentLoaded", function () {
             refineBtn.classList.add('disabled');
         }
     }
-
 });
 </script>
 
