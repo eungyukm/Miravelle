@@ -14,14 +14,13 @@ Meshy AI 기반 3D 생성 플랫폼
 - Meshy AI API를 통한 3D 모델 생성
 - 생성된 3D 모델 저장 및 관리
 - 생성된 3D 모델의 미리보기 및 다운로드 기능
-- 관리자 대시보드를 통한 모델 검토 및 승인
 
 ## 기술 스택
 | 구성 요소        | 기술 |
 |----------------|------|
 | 백엔드         | Django, Django REST Framework |
 | 데이터베이스   | PostgreSQL |
-| 프론트엔드     | React (선택사항) |
+| 프론트엔드     | HTML, CSS, JavaScript |
 | 3D 뷰어       | Three.js (WebGL) |
 | API 연동      | Meshy AI API |
 | 배포 및 운영   | Azure (App Service) |
