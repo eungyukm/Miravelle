@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create a 3D Model</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- FontAwesome 아이콘 추가 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #212529;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .layout {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 40px);
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 240px;
+            background-color: #f8f8f8;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-right: 1px solid #e0e0e0;
+            box-sizing: border-box;
+        }
+
+        .sidebar-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .sidebar-icon-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #888;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .sidebar-icon-btn:hover {
+            color: #000;
+            background-color: #e0e0e0;
+        }
+
+        .sidebar-icon-btn.active {
+            color: #000;
+            font-weight: bold;
+            background-color: #e0e0e0;
+        }
+
+        #canvas-container {
+            flex-grow: 1;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid #e0e0e0;
+            min-width: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #threejs-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #control-panel {
+            width: 480px;
+            background-color: #ffffff;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            border-left: 1px solid #e0e0e0;
+            box-sizing: border-box;
+            transition: width 0.3s ease;
+        }
+
+        .panel-content {
+            display: none; /* 숨기기 */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+        }
+
+        .panel-content.active {
+            display: flex; /* 보이기 */
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .form-label {
+            display: block; /* 인라인 요소에서 블록 요소로 변경 */
+            width: 100%; /* 부모 너비에 맞춤 */
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #212529;
+            text-align: left; /* 왼쪽 정렬 */
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <!-- 좌측 사이드바 -->
+    <div id="sidebar">
+        <div class="sidebar-icons">
+            <button class="sidebar-icon-btn active" onclick="switchPanel('model')">
+                <i class="fas fa-cube"></i> Model
+            </button>
+            <button class="sidebar-icon-btn" onclick="switchPanel('texture')">
+                <i class="fas fa-paint-brush"></i> Texture
+            </button>
+        </div>
+    </div>
+
+    <!-- Three.js 캔버스 -->
+    <div id="canvas-container">
+        <canvas id="threejs-canvas"></canvas>
+    </div>
+
+    <!-- 우측 패널 -->
+    <div id="control-panel">
+        <div id="model-form" class="panel-content active">
+            <form id="meshForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="prompt" class="form-label">Prompt</label>
+                    <input type="text" id="prompt" name="prompt" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="art_style" class="form-label">Art Style</label>
+                    <select id="art_style" name="art_style" class="form-select">
+                        <option value="realistic">Realistic</option>
+                        <option value="sculpture">Sculpture</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-dark w-100">Generate Model</button>
+            </form>
+        </div>
+
+        <div id="texture-form" class="panel-content">
+            <form id="meshForm">
+                <div class="mt-3">
+                    <button id="refineBtn" class="btn btn-dark  w-100">Refine Mesh</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js 라이브러리 추가 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+
+<script>
+    let scene, camera, renderer, cube;
+
+    function initThreeJS() {
+        // Scene 생성
+        scene = new THREE.Scene();
+
+        // Camera 설정
+        camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth * 0.6 / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.z = 3;
+
+        // Renderer 설정
+        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threejs-canvas') });
+        renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Cube 생성
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        animate(); // 애니메이션 시작
+    }
+
+    // 애니메이션 함수
+    function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+        renderer.render(scene, camera);
+    }
+
+    // 창 크기 조정 처리
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth * 0.6 / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
+    });
+
+    function switchPanel(panel) {
+        document.querySelectorAll('.panel-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${panel}-form`).classList.add('active');
+
+        document.querySelectorAll('.sidebar-icon-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.sidebar-icon-btn[onclick="switchPanel('${panel}')"]`).classList.add('active');
+    }
+
+    // Three.js 초기화
+    initThreeJS();
+</script>
+
+</body>
+</html>
+
+{% endblock %}
