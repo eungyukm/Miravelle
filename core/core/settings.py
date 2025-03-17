@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -151,6 +153,41 @@ DATABASES = {
         'NAME': ':memory:' if IS_PRODUCTION else os.path.join(BASE_DIR, 'db.sqlite3'),
     } # 메모리 기반 DB, 만약 로컬 서버라면 db.sqlite3
 }
+
+if IS_LOCAL_ENV:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('DB_ENGINE'),
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+        }
+    }
+else:
+    KV_URI = f"https://miravelle-key.vault.azure.net/"
+
+    credential = DefaultAzureCredential()
+    client = SecretClient(vault_url=KV_URI, credential=credential)
+
+    def get_secret(name):
+        try:
+            return client.get_secret(name).value
+        except Exception as e:
+            print(f"Failed to retrieve {name}: {e}")
+            return None
+
+    DATABASES = {
+        'default': {
+            'ENGINE': get_secret('DB-ENGINE'),
+            'NAME': get_secret('DB-NAME'),
+            'USER': get_secret('DB-USER'),
+            'PASSWORD': get_secret('DB-PASSWORD'),
+            'HOST': get_secret('DB-HOST'),
+            'PORT': get_secret('DB-PORT'),
+        }
+    }
 
 # File Permissions
 FILE_UPLOAD_PERMISSIONS = 0o644
