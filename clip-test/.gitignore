@@ -1,0 +1,42 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Virtual environments (venv, virtualenv)
+venv/
+env/
+.venv/
+.virtualenvs/
+
+# IDE/Editor 관련 파일 (VSCode, PyCharm, Jupyter 등)
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# 환경 설정 파일
+*.env
+.envrc
+*.ini
+*.cfg
+
+# Logs
+logs/
+*.log
+
+# Django/Migrations 관련 파일
+*.sqlite3
+db.sqlite3
+*.db
+migrations/**/000*_*.py  # 초기 마이그레이션 파일 제외
+
+# Jupyter Notebook 자동 생성 파일
+.ipynb_checkpoints/
+
+# MacOS 관련
+.DS_Store
+
+# Windows 관련
+Thumbs.db
