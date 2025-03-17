@@ -194,10 +194,9 @@
     </div>
 </div>
 
-<!-- Three.js 라이브러리 추가 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
 
-<script>
     let scene, camera, renderer, cube;
 
     function initThreeJS() {
