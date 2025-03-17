@@ -114,7 +114,7 @@
         }
 
         .panel-content {
-            display: none; /* 숨기기 */
+            display: none;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -125,21 +125,27 @@
         }
 
         .panel-content.active {
-            display: flex; /* 보이기 */
+            display: flex;
             opacity: 1;
             visibility: visible;
         }
 
-        .form-label {
-            display: block; /* 인라인 요소에서 블록 요소로 변경 */
-            width: 100%; /* 부모 너비에 맞춤 */
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #212529;
-            text-align: left; /* 왼쪽 정렬 */
+        .progress {
+            height: 24px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
+        .progress-bar {
+            height: 100%;
+            background-color: #007bff;
+            width: 0;
+            text-align: center;
+            line-height: 24px;
+            color: white;
+            transition: width 0.4s ease;
+        }
     </style>
 </head>
 <body>
@@ -157,7 +163,7 @@
         </div>
     </div>
 
-    <!-- Three.js 캔버스 -->
+    <!-- Three.js 렌더링 대상 -->
     <div id="canvas-container">
         <canvas id="threejs-canvas"></canvas>
     </div>
@@ -180,78 +186,275 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-dark w-100">Generate Model</button>
+                <p id="error-message" class="text-danger mt-3"></p>
+
+                <!-- 프로그레스 바 -->
+                <div id="statusSection" style="margin-top: 10px;">
+                    <div class="progress">
+                        <div id="progressBar" class="progress-bar" role="progressbar">0%</div>
+                    </div>
+                </div>
+
+                <br/>
+
+                <button type="submit" id="generateBtn" class="btn btn-dark w-100">Generate Model</button>
             </form>
         </div>
 
         <div id="texture-form" class="panel-content">
-            <form id="meshForm">
-                <div class="mt-3">
-                    <button id="refineBtn" class="btn btn-dark  w-100">Refine Mesh</button>
-                </div>
-            </form>
+            <button id="refineBtn" class="btn btn-dark w-100" disabled>Refine Mesh</button>
         </div>
     </div>
 </div>
 
-<!-- Three.js 라이브러리 추가 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<!-- Three.js 코드 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
-    let scene, camera, renderer, cube;
+    // Three.js 기본 설정
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 0, 2.5);
 
-    function initThreeJS() {
-        // Scene 생성
-        scene = new THREE.Scene();
+    // 배경 색상 설정
+    scene.background = new THREE.Color(0xeeeeee); // 밝은 회색 배경
 
-        // Camera 설정
-        camera = new THREE.PerspectiveCamera(
-            75,
-            window.innerWidth * 0.6 / window.innerHeight,
-            0.1,
-            1000
-        );
-        camera.position.z = 3;
+    // 배경 텍스처 추가
+    // const textureLoader = new THREE.TextureLoader();
+    // textureLoader.load('textures/background.jpg', (texture) => {
+    //     scene.background = texture;
+    // });
 
-        // Renderer 설정
-        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threejs-canvas') });
-        renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
 
-        // Cube 생성
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+    // 조명 추가
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(10, 10, 10);
+    scene.add(light);
 
-        animate(); // 애니메이션 시작
+    let loadedModel = null;
+    let isDragging = false;
+    let isPanning = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    // GLB 파일 URL 동적 로드
+    const loader = new THREE.GLTFLoader();
+
+    async function loadModel(job_id) {
+        try {
+            console.log('log: ', job_id);
+
+            const response = await fetch(`/utils/get_glb/${job_id}/`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch GLB URL: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const blobUrl = data.file_url;
+
+            console.log('Blob URL:', blobUrl);
+
+            loader.load(
+                blobUrl,
+                (gltf) => {
+                    const model = gltf.scene;
+                    scene.add(model);
+                    model.scale.set(0.5, 0.5, 0.5);
+                    loadedModel = model;
+                },
+                (xhr) => {
+                    console.log(`Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+                },
+                (error) => {
+                    console.error('GLTF Load Error:', error);
+                }
+            );
+        } catch (error) {
+            console.error('Failed to load model:', error);
+        }
     }
 
-    // 애니메이션 함수
+    // 애니메이션 루프
     function animate() {
         requestAnimationFrame(animate);
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
         renderer.render(scene, camera);
     }
+    animate();
 
-    // 창 크기 조정 처리
+    // 창 크기 변경 시 렌더러 크기 업데이트
     window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth * 0.6 / window.innerHeight;
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
     });
 
-    function switchPanel(panel) {
-        document.querySelectorAll('.panel-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${panel}-form`).classList.add('active');
-
-        document.querySelectorAll('.sidebar-icon-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.sidebar-icon-btn[onclick="switchPanel('${panel}')"]`).classList.add('active');
+    // 마우스 드래그로 모델 회전 및 이동 처리
+    function onMouseDown(event) {
+        if (event.button === 0) {
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+            container.style.cursor = "grabbing";
+        } else if (event.button === 1) {
+            isPanning = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+            container.style.cursor = "move";
+        }
     }
 
-    // Three.js 초기화
-    initThreeJS();
+    function onMouseMove(event) {
+        if (isDragging && loadedModel) {
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+            loadedModel.rotation.y += deltaX * 0.005;
+            loadedModel.rotation.x += deltaY * 0.005;
+        }
+
+        if (isPanning) {
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+            camera.position.x -= deltaX * 0.01;
+            camera.position.y += deltaY * 0.01;
+            camera.position.x = Math.max(-5, Math.min(5, camera.position.x));
+            camera.position.y = Math.max(0, Math.min(5, camera.position.y));
+        }
+
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+    }
+
+    function onMouseUp() {
+        isDragging = false;
+        isPanning = false;
+        container.style.cursor = "grab";
+    }
+
+    // 카메라 줌 (마우스 휠)
+    function onMouseWheel(event) {
+        event.preventDefault();
+        let zoomAmount = event.deltaY * 0.01;
+        let newDistance = camera.position.z + zoomAmount;
+        if (newDistance >= 2 && newDistance <= 10) {
+            camera.position.z = newDistance;
+        }
+    }
+
+    // 이벤트 리스너 추가
+    container.addEventListener("mousedown", onMouseDown);
+    container.addEventListener("mousemove", onMouseMove);
+    container.addEventListener("mouseup", onMouseUp);
+    container.addEventListener("wheel", onMouseWheel, { passive: false });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const generateBtn = document.getElementById("generateBtn");
+    const errorMessage = document.getElementById("error-message");
+    const refineBtn = document.getElementById("refineBtn");
+    const progressBar = document.getElementById("progressBar");
+    const statusSection = document.getElementById("statusSection");
+
+    let currentJobId = null;
+
+    init();
+
+    function init() {
+        setRefineBtnState(false);
+        statusSection.classList.add("hidden");
+    }
+
+    document.getElementById("meshForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        generateBtn.disabled = true;
+        errorMessage.textContent = "";
+
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        const prompt = document.getElementById("prompt").value;
+        const artStyle = document.getElementById("art_style").value;
+
+        fetch("/workspace/api/generate_mesh/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({ prompt, art_style: artStyle })
+        })
+        .then(response => response.json())
+        .then(data => {
+        currentJobId = data.job_id;
+        console.log(currentJobId);
+        if (currentJobId) startProgressStream(currentJobId);
+        });
+    });
+
+    function startProgressStream(jobId) {
+        if (!jobId) return;
+
+        const eventSource = new EventSource(`/workspace/${jobId}/stream/`);
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.progress !== undefined) {
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.progress}%`;
+                statusSection.classList.remove('hidden');
+            }
+            if (["SUCCEEDED", "FAILED", "CANCELED"].includes(data.status)) {
+                eventSource.close();
+                if (data.status === "SUCCEEDED") {
+                    pollMeshData(jobId);
+
+                    // RefineBtn 활성화
+                    setRefineBtnState(true);
+                }
+            }
+        };
+    }
+
+    function pollMeshData(jobId) {
+    const intervalId = setInterval(() => {
+        fetch(`/workspace/${jobId}/`)
+        .then(response => response.json())
+        .then(meshData => {
+            console.log("Mesh data:", meshData);
+            return fetch(`/workspace/check_status?job_id=${jobId}`);
+        })
+        .then(response => response.json())
+        .then(statusData => {
+            console.log("Status data:", statusData);
+
+            // 완료 시 폴링 종료하고, 모델 로드
+            if (statusData.status === "completed") {
+            clearInterval(intervalId);
+            loadModel(jobId);
+            }
+        })
+        .catch(error => {
+            console.error("Error in polling:", error);
+        });
+    }, 1000); // 1초(1000ms) 간격
+    }
+
+    function setRefineBtnState(isEnabled) {
+        refineBtn.disabled = !isEnabled;
+        if (isEnabled) {
+            refineBtn.classList.remove('disabled');
+        } else {
+            refineBtn.classList.add('disabled');
+        }
+    }
+
+    window.switchPanel = function(panel) {
+        document.querySelectorAll('.panel-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${panel}-form`)?.classList.add('active');
+    };
+
+
+});
+
 </script>
 
 </body>

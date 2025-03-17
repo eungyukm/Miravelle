@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 @login_required
 def create_mesh_page(request):
     """3D 모델 생성 페이지 렌더링"""
+    return render(request, "workspace/workspace_main.html")
     return render(request, "workspace/create_mesh.html")
 
 
@@ -176,3 +177,14 @@ def stream_refine_mesh_progress(request, mesh_id):
 
     # 스트리밍 반환
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+
+def check_status(request):
+    job_id = request.GET.get("job_id")
+    if not job_id:
+        return JsonResponse({"error": "job_id required"}, status=400)
+
+    mesh_model = MeshModel.objects.filter(job_id=job_id).first()
+    if not mesh_model:
+        return JsonResponse({"status": "not_found"}, status=404)
+    
+    return JsonResponse({"status": mesh_model.status})
