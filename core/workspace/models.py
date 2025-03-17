@@ -17,5 +17,7 @@ class MeshModel(models.Model):
     usdz_path = models.FileField(blank=True, null=True)
     metadata_path = models.FileField(blank=True, null=True)
 
+    base_color_path = models.FileField(blank=True, null=True)
+
     def __str__(self):
         return f"Mesh {self.job_id} - {self.status}"
