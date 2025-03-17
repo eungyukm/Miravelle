@@ -237,6 +237,7 @@
     scene.add(light);
 
     let loadedModel = null;
+    let modelLoaded = false;
     let isDragging = false;
     let isPanning = false;
     let previousMousePosition = { x: 0, y: 0 };
@@ -245,6 +246,10 @@
     const loader = new THREE.GLTFLoader();
 
     async function loadModel(job_id) {
+        if (modelLoaded) {
+            console.log('Model already loaded.');
+            return;
+        }
         try {
             console.log('log: ', job_id);
 
@@ -265,6 +270,7 @@
                     scene.add(model);
                     model.scale.set(0.5, 0.5, 0.5);
                     loadedModel = model;
+                    modelLoaded = true;
                 },
                 (xhr) => {
                     console.log(`Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
