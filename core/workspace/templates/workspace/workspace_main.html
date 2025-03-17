@@ -154,7 +154,7 @@
     <!-- 좌측 사이드바 -->
     <div id="sidebar">
         <div class="sidebar-icons">
-            <button class="sidebar-icon-btn active" onclick="switchPanel('model')">
+            <button class="sidebar-icon-btn" onclick="switchPanel('model')">
                 <i class="fas fa-cube"></i> Model
             </button>
             <button class="sidebar-icon-btn" onclick="switchPanel('texture')">
@@ -202,6 +202,14 @@
         </div>
 
         <div id="texture-form" class="panel-content">
+            <!-- 프로그레스 바 -->
+            <div id="statusSection" style="margin-top: 10px;">
+                <div class="progress">
+                    <div id="progressBar_refine" class="progress-bar" role="progressbar">0%</div>
+                </div>
+            </div>
+
+            <br/>
             <button id="refineBtn" class="btn btn-dark w-100" disabled>Refine Mesh</button>
         </div>
     </div>
@@ -381,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessage = document.getElementById("error-message");
     const refineBtn = document.getElementById("refineBtn");
     const progressBar = document.getElementById("progressBar");
+    const progressBar_refine = document.getElementById("progressBar_refine");
     const statusSection = document.getElementById("statusSection");
 
     let currentJobId = null;
@@ -475,6 +484,60 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById(`${panel}-form`)?.classList.add('active');
     };
 
+    refineBtn.addEventListener("click", () => {
+        setRefineBtnState(false);
+        refineMesh(currentJobId);
+    });
+
+    async function refineMesh(jobId) {
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        try {
+            const response = await fetch('/workspace/refine_mesh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ mesh_id: jobId })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API 호출 실패: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Job ID:', data.job_id);
+            currentJobId = data.job_id;
+            alert(`Mesh refinement started. Job ID: ${data.job_id}`);
+            refineMeshProgressStream(data.job_id);
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error: ${error.message}`);
+        }
+    }
+
+    function refineMeshProgressStream(jobId) {
+        if (!jobId) return;
+        const eventSource = new EventSource(`/workspace/${jobId}/refine_stream/`);
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.progress !== undefined) {
+                progressBar_refine.style.width = `${data.progress}%`;
+                progressBar_refine.textContent = `${data.progress}%`;
+                statusSection.classList.remove('hidden');
+            }
+            if (["SUCCEEDED", "FAILED", "CANCELED"].includes(data.status)) {
+                eventSource.close();
+                if (data.status === "SUCCEEDED") {
+                    console.log("good!")
+                    console.log(data);
+                }
+                else {
+                    console.log("doing!!")
+                }
+            }
+        };
+    }
 });
 </script>
 
