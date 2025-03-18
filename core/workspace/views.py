@@ -219,3 +219,14 @@ def get_refine_mesh(request, mesh_id) -> JsonResponse:
         "job_id": mesh_id,
         "status": "progress",
     })
+
+def check_refine_mesh_status(request):
+    job_id = request.GET.get("job_id")
+    if not job_id:
+        return JsonResponse({"error": "job_id required"}, status=400)
+
+    mesh_model = MeshModel.objects.filter(job_id=job_id).first()
+    if not mesh_model:
+        return JsonResponse({"status": "not_found"}, status=404)
+    
+    return JsonResponse({"status": mesh_model.status})

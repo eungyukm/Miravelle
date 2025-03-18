@@ -7,6 +7,7 @@ urlpatterns = [
     path("", views.create_mesh_page, name="create_mesh_page"),  # 페이지 렌더링
 
     path("check_status/", views.check_status, name="check_status"),
+    path("check_refine_mesh_status/", views.check_refine_mesh_status, name="check_refine_mesh_status"),
 
     path("api/generate_mesh/", views.generate_mesh, name="generate_mesh"),  # 모델 생성 요청 API
     path("<str:mesh_id>/", views.get_mesh, name="get_mesh"),  # 생성 완료 후 모델 데이터 가져오기

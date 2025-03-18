@@ -240,6 +240,7 @@
 
     let loadedModel = null;
     let modelLoaded = false;
+    let refineModelLoaded = false;
     let isDragging = false;
     let isPanning = false;
     let previousMousePosition = { x: 0, y: 0 };
@@ -272,7 +273,6 @@
                     scene.add(model);
                     model.scale.set(1, 1, 1);
                     loadedModel = model;
-                    modelLoaded = true;
                 },
                 (xhr) => {
                     console.log(`Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
@@ -461,7 +461,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("Status data:", statusData);
                 if (statusData.status === "completed" && !modelLoaded) {
                     clearInterval(intervalId);
+                    unloadModel();
                     loadModel(jobId);
+                    modelLoaded = true;
                 }
             })
             .catch(error => {
@@ -527,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .then(meshData => {
                 console.log("Refined Mesh Data:", meshData);
-                // 여기서 받아온 refined mesh 정보를 활용하여 화면 업데이트 등 추가 작업을 수행하세요.
+                pollRefineMeshStatus(jobId);
             })
             .catch(error => {
                 console.error("Refine mesh API 호출 실패:", error);
@@ -558,6 +560,31 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
     }
+
+    function pollRefineMeshStatus(jobId) {
+        const intervalId = setInterval(() => {
+            fetch(`/workspace/check_refine_mesh_status?job_id=${jobId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("네트워크 응답이 올바르지 않습니다.");
+                    }
+                    return response.json();
+                })
+                .then(statusData => {
+                    console.log("Refine Mesh Status Data:", statusData);
+                    if (statusData.status === "refine-completed" && !refineModelLoaded) {
+                        clearInterval(intervalId);
+                        unloadModel();
+                        loadModel(jobId);
+                        refineModelLoaded = true;
+                    }
+                })
+                .catch(error => {
+                    console.error("Refine Mesh status polling error:", error);
+                });
+        }, 1000);
+    }
+
 });
 </script>
 
