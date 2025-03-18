@@ -60,10 +60,10 @@ python manage.py runserver
 ```
 
 ## 연관 프로젝트
-# **Miravelle-FastAPI**    
+### **Miravelle-FastAPI**    
 [GitHub Repository](https://github.com/eungyukm/Miravelle-FastAPI)     
 
-# **ThreeNest**    
+### **ThreeNest**    
 [GitHub Repository](https://github.com/eungyukm/ThreeNest)    
 
 ## 기여 방법
