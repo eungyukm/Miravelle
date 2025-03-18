@@ -59,6 +59,13 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## 연관 프로젝트
+# **Miravelle-FastAPI**    
+[GitHub Repository](https://github.com/eungyukm/Miravelle-FastAPI)     
+
+# **ThreeNest**    
+[GitHub Repository](https://github.com/eungyukm/ThreeNest)    
+
 ## 기여 방법
 기여를 원하시면 이슈를 생성하고 PR을 제출해 주세요. 
 
