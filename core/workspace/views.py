@@ -18,9 +18,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 @login_required
 def create_mesh_page(request):
     """3D 모델 생성 페이지 렌더링"""
-    return render(request, "workspace/create_mesh.html")
-
-
+    return render(request, "workspace/workspace_main.html")
+    
 @csrf_exempt
 @login_required
 def generate_mesh(request):
@@ -176,3 +175,58 @@ def stream_refine_mesh_progress(request, mesh_id):
 
     # 스트리밍 반환
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+
+def check_status(request):
+    job_id = request.GET.get("job_id")
+    if not job_id:
+        return JsonResponse({"error": "job_id required"}, status=400)
+
+    mesh_model = MeshModel.objects.filter(job_id=job_id).first()
+    if not mesh_model:
+        return JsonResponse({"status": "not_found"}, status=404)
+    
+    return JsonResponse({"status": mesh_model.status})
+
+def refine_mesh_upload_blob_in_thread(request, response: dict):    
+    """Azure Blob Storage 업로드를 백그라운드에서 실행"""
+    def upload_task():
+        uploader = AzureBlobUploader()
+        uploader.upload_refine_assets(request, response)  # 필요한 작업 수행
+
+    thread = threading.Thread(target=upload_task)
+    thread.daemon = True  # 메인 프로세스 종료 시 함께 종료되도록 설정 (선택사항)
+    thread.start()
+
+def get_refine_mesh(request, mesh_id) -> JsonResponse:
+    """
+    진행률 100% 후 썸네일 및 비디오 URL을 반환하는 뷰.
+    Meshy API 응답을 받은 후, Python 스레드를 사용해 파일 업로드 및 모델 저장을 비동기로 수행합니다.
+    """
+    # mesh = get_object_or_404(MeshModel, job_id=mesh_id)
+    response_data = call_meshy_api(f"/openapi/v2/text-to-3d/{mesh_id}")
+
+    if not response_data:
+        return JsonResponse({"error": "Mesh 정보를 가져올 수 없습니다."}, status=400)
+    
+    # 만약 response_data에 'job_id'가 없다면 mesh_id를 추가합니다.
+    if "job_id" not in response_data:
+        response_data["job_id"] = mesh_id
+
+    # 백그라운드 스레드를 통해 Azure Blob Storage 업로드 작업을 실행합니다.
+    refine_mesh_upload_blob_in_thread(request, response_data)
+
+    return JsonResponse({
+        "job_id": mesh_id,
+        "status": "progress",
+    })
+
+def check_refine_mesh_status(request):
+    job_id = request.GET.get("job_id")
+    if not job_id:
+        return JsonResponse({"error": "job_id required"}, status=400)
+
+    mesh_model = MeshModel.objects.filter(job_id=job_id).first()
+    if not mesh_model:
+        return JsonResponse({"status": "not_found"}, status=404)
+    
+    return JsonResponse({"status": mesh_model.status})

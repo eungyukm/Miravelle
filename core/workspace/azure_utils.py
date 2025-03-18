@@ -116,3 +116,80 @@ class AzureBlobUploader:
         mesh_model.status = "completed"
         mesh_model.save()
         print(f"MeshModel saved: {mesh_model}")
+
+    def upload_refine_assets(self, request, meshy_response: dict):
+        """Meshy API 응답 데이터를 기반으로 Refine 파일 업로드 및 모델 저장"""
+        task_id = meshy_response.get("job_id")
+        if not task_id:
+            raise ValueError("Meshey response does not contain 'job_id': " + str(meshy_response))
+
+        user_id = request.session.get('user_id')
+        if not user_id:
+            raise ValueError("User not authenticated")
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise ValueError("User not found")
+
+        # 프롬프트를 조건으로 사용하여 update_or_create 수행
+        prompt = meshy_response.get("prompt", "")
+        mesh_model, created = MeshModel.objects.update_or_create(
+            create_prompt=prompt,
+            defaults={
+                'job_id': task_id,
+                'user': user,
+                'status': 'processing'
+            }
+        )
+
+        if not created:
+            print(f"MeshModel with prompt='{prompt}' already exists, updating fields")
+
+        # 모델 파일 업로드 후 저장
+        for model_format, url in meshy_response.get("model_urls", {}).items():
+            if url:
+                uploaded_url = self.upload_blob(task_id, f"models/model.{model_format}", url)
+                if uploaded_url:
+                    if model_format == 'fbx':
+                        mesh_model.fbx_path = uploaded_url
+                    elif model_format == 'glb':
+                        mesh_model.glb_path = uploaded_url
+                    elif model_format == 'obj':
+                        mesh_model.obj_path = uploaded_url
+                    elif model_format == 'usdz':
+                        mesh_model.usdz_path = uploaded_url
+
+        # 썸네일 업로드
+        if meshy_response.get("thumbnail_url"):
+            uploaded_url = self.upload_blob(task_id, "previews/preview.png", meshy_response.get("thumbnail_url"))
+            if uploaded_url:
+                mesh_model.image_path = uploaded_url
+
+        # 비디오 업로드
+        if meshy_response.get("video_url"):
+            uploaded_url = self.upload_blob(task_id, "videos/output.mp4", meshy_response.get("video_url"))
+            if uploaded_url:
+                mesh_model.video_path = uploaded_url
+
+        # 텍스쳐 업로드: base_color_path
+        texture_urls = meshy_response.get("texture_urls", [])
+        if texture_urls and isinstance(texture_urls, list):
+            for texture in texture_urls:
+                base_color_url = texture.get("base_color")
+                if base_color_url:
+                    uploaded_url = self.upload_blob(task_id, "textures/base_color.png", base_color_url)
+                    if uploaded_url:
+                        mesh_model.base_color_path = uploaded_url
+                    break  # 첫번째 base_color만 처리
+
+        # 원본 JSON 데이터 저장
+        metadata_blob_client = self.container_client.get_blob_client(f"tasks/{task_id}/metadata.json")
+        metadata_blob_client.upload_blob(json.dumps(meshy_response, indent=4), overwrite=True)
+        metadata_url = metadata_blob_client.url
+        mesh_model.metadata_path = metadata_url
+
+        # 상태 업데이트 및 저장
+        mesh_model.status = "refine-completed"
+        mesh_model.save()
+        print(f"MeshModel saved: {mesh_model}")
