@@ -40,15 +40,15 @@ class Article(models.Model):
     -> def save, def generate_unique_model_seed로 저장 및 유니크 관리
     """
     id = models.AutoField(primary_key=True)
-    image = models.ImageField(upload_to="article/image/") # 모델 이미지
+    image = models.ImageField(upload_to="article/image/", max_length=500) # 모델 이미지
     like_count = models.PositiveIntegerField(default=0) # 좋아요 개수
     dislike_count = models.PositiveIntegerField(default=0) # 싫어요 개수
     user_id = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="articles"
         ) # 유저 아이디
-    title = models.CharField(max_length=255) # 게시글 제목
+    title = models.CharField(max_length=512) # 게시글 제목
     created_at = models.DateTimeField(auto_now_add=True) # 생성 시간
-    tags = models.CharField(max_length=100, blank=True)
+    tags = models.CharField(max_length=255, blank=True)
     model_prompt = models.TextField()
     texture_prompt = models.TextField()
     model_seed = models.IntegerField(unique=True) # 타이틀의 고유 번호
@@ -61,15 +61,16 @@ class Article(models.Model):
         blank=True
     )
 
-    status = models.CharField(max_length=50, default="processing")
+    status = models.CharField(max_length=255, default="processing")
     create_prompt = models.TextField(blank=True, null=True)
-    image_path = models.FileField(blank=True, null=True)
-    video_path = models.FileField(blank=True, null=True)
-    fbx_path = models.FileField(blank=True, null=True)
-    glb_path = models.FileField(blank=True, null=True)
-    obj_path = models.FileField(blank=True, null=True)
-    usdz_path = models.FileField(blank=True, null=True)
-    metadata_path = models.FileField(blank=True, null=True)
+    image_path = models.FileField(max_length=500, blank=True, null=True)
+    video_path = models.FileField(max_length=500, blank=True, null=True)
+    fbx_path = models.FileField(max_length=500, blank=True, null=True)
+    glb_path = models.FileField(max_length=500, blank=True, null=True)
+    obj_path = models.FileField(max_length=500, blank=True, null=True)
+    usdz_path = models.FileField(max_length=500, blank=True, null=True)
+    metadata_path = models.FileField(max_length=500, blank=True, null=True)
+    base_color_path = models.FileField(max_length=500, blank=True, null=True)
 
     
     
@@ -88,6 +89,7 @@ class Article(models.Model):
             self.obj_path = self.job.obj_path
             self.usdz_path = self.job.usdz_path
             self.metadata_path = self.job.metadata_path
+            self.base_color_path = self.job.base_color_path
 
         super().save(*args, **kwargs)
 
