@@ -516,6 +516,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // get_refine_mesh API 호출을 담당하는 함수
+    function callGetRefineMesh(jobId) {
+        fetch(`/workspace/${jobId}/get_refine_mesh/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("네트워크 응답이 올바르지 않습니다.");
+                }
+                return response.json();
+            })
+            .then(meshData => {
+                console.log("Refined Mesh Data:", meshData);
+                // 여기서 받아온 refined mesh 정보를 활용하여 화면 업데이트 등 추가 작업을 수행하세요.
+            })
+            .catch(error => {
+                console.error("Refine mesh API 호출 실패:", error);
+            });
+    }
+
     function refineMeshProgressStream(jobId) {
         if (!jobId) return;
         const eventSource = new EventSource(`/workspace/${jobId}/refine_stream/`);
@@ -531,6 +549,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.status === "SUCCEEDED") {
                     console.log("good!")
                     console.log(data);
+                    // 상태가 SUCCEEDED면 별도로 분리한 함수를 호출
+                    callGetRefineMesh(jobId);
                 }
                 else {
                     console.log("doing!!")

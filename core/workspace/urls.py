@@ -14,4 +14,7 @@ urlpatterns = [
 
     path("refine_mesh", views.refine_mesh, name="refine_mesh"),
     path("<str:mesh_id>/refine_stream/", views.stream_refine_mesh_progress, name="stream_refine_mesh_progress"),
+
+    # refined mesh 정보를 가져오는 API 엔드포인트
+    path("<str:mesh_id>/get_refine_mesh/", views.get_refine_mesh, name="get_refine_mesh"),
 ]
