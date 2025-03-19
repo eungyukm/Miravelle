@@ -54,6 +54,9 @@ CACHES = {
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
 
+# OPEN AI
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 ALLOWED_HOSTS = [
     "miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net",
     "127.0.0.1",
@@ -101,6 +104,7 @@ INSTALLED_APPS = [
     "threeworld", # three.js app
     "utils", # 유틸리티 관련 테스팅 및 관리 앱
     "texture", # 텍스처 작업 공간 앱
+    "prompts", # 유저의 프롬프트를 보조해주는 앱
 
     # DRF & Swagger
     "rest_framework",
