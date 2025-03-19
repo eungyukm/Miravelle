@@ -31,7 +31,7 @@ async def generate_3d_prompt(user_input):
 
     return response.choices[0].message.content
 
-# Django REST Framework API 엔드포인트 (동기 코드로 수정)
+# Django REST Framework API 엔드포인트
 class GeneratePromptAPI(APIView):
     def post(self, request):
         user_request = request.data.get("user_input", "")
@@ -39,7 +39,10 @@ class GeneratePromptAPI(APIView):
         if not user_request:
             return Response({"error": "user_input is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # OpenAI API 호출을 동기적으로 실행
-        optimized_prompt = async_to_sync(generate_3d_prompt)(user_request)
-        
+        # OpenAI API 호출을 비동기적으로 실행하고 결과를 얻음
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        optimized_prompt = loop.run_until_complete(generate_3d_prompt(user_request))
+        loop.close()
+
         return Response({"generated_prompt": optimized_prompt}, status=status.HTTP_200_OK)
