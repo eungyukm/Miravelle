@@ -21,14 +21,15 @@ Meshy AI 기반 3D 생성 플랫폼
 | 백엔드         | Django, Django REST Framework |
 | 데이터베이스   | PostgreSQL |
 | 프론트엔드     | HTML, CSS, JavaScript |
-| 3D 뷰어       | Three.js (WebGL) |
-| API 연동      | Meshy AI API |
+| 3D 뷰어       | Three.js |
+| AI      | Meshy AI API, Chat GPT, LangChain |
 | 배포 및 운영   | Azure (App Service) |
 
 ## 시스템 아키텍처
 ```
 사용자 → Django API → Meshy AI API → 3D 모델 생성 → 저장 및 제공
 ```
+![시스템 아키텍쳐](Docs/images/Architecture.png)
 
 ## 규칙
 [코드 규칙](Docs/docs/code_convention.md)       
