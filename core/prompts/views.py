@@ -1,59 +1,35 @@
-import logging
+# prompts/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from .models import MeshPromptModel
+import openai
 
-# utils
-from workspace.meshy_utils import call_meshy_api  # Meshy API 호출 함수
-from .serializers import GenerateMeshRequestSerializer  # Serializer 임포트
-
-# 로깅 설정
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-class GenerateMesh(APIView):
-    """Mesh 생성 요청 & job_id 반환"""
-    permission_classes = [IsAuthenticated]  # 로그인된 사용자만 접근 가능
-
-    def get(self, request):
-        """최근 생성된 Mesh 모델 목록 조회"""
-        meshes = MeshPromptModel.objects.filter(user=request.user).order_by("-created_at")[:5]  # 최근 5개 조회
-        results = [{"job_id": mesh.job_id, "status": mesh.status, "prompt": mesh.create_prompt, "art_style": mesh.art_style} for mesh in meshes]
-
-        return Response({"recent_meshes": results}, status=status.HTTP_200_OK)
+# OpenAI 프롬프트 생성 함수
+def generate_3d_prompt(user_input):
+    system_prompt = (
+        "너는 3D 모델을 생성하기 위한 최적의 프롬프트를 만드는 AI야. "
+        "사용자의 요청을 분석하여 디테일한 프롬프트를 제공해야 해. "
+        "프롬프트는 구체적인 특징(색상, 분위기, 배경, 스타일 등)을 포함해야 하며, "
+        "모델링에 적합한 키워드 중심으로 작성해야 해."
+    )
     
+    response = openai.ChatCompletion.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    
+    return response["choices"][0]["message"]["content"]
+
+# Django REST Framework API 엔드포인트 (CBV)
+class GeneratePromptAPI(APIView):
     def post(self, request):
-        serializer = GenerateMeshRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            prompt = serializer.validated_data['prompt']
-            art_style = serializer.validated_data.get('art_style', 'realistic')
-
-            # 프롬프트 보강: 중복 확인 후 "4K, highly detailed" 추가
-            if "4K" not in prompt and "highly detailed" not in prompt:
-                enhanced_prompt = prompt + ", 4K, highly detailed"
-            else:
-                enhanced_prompt = prompt  # 이미 포함된 경우 그대로 사용
-
-            response_data = call_meshy_api("/openapi/v2/text-to-3d", "POST", {
-                "mode": "preview", "prompt": enhanced_prompt, "art_style": art_style
-            })
-
-            if not response_data:
-                return Response({"error": "Meshy API 응답 없음"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            job_id = response_data.get("result")
-            if not job_id:
-                return Response({"error": "Meshy API에서 job_id를 받지 못했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            MeshPromptModel.objects.create(
-                user=request.user,
-                job_id=job_id,
-                status="processing",
-                create_prompt=enhanced_prompt,  # 보강된 프롬프트 정보 저장
-                art_style=art_style
-            )
-
-            return Response({"job_id": job_id, "message": "Mesh 생성 시작!"}, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_request = request.data.get("user_input", "")
+        
+        if not user_request:
+            return Response({"error": "user_input is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        optimized_prompt = generate_3d_prompt(user_request)
+        return Response({"generated_prompt": optimized_prompt}, status=status.HTTP_200_OK)
