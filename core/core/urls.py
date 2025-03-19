@@ -28,7 +28,7 @@ urlpatterns = [
     path("threeworld/", include("threeworld.urls")),
     path("utils/", include("utils.urls")),
     path("texture/", include("texture.urls")),
-    path("prompts/", include("prompts.urls")),
+    path("api/prompts/", include("prompts.urls")),
 
 
     path("publish/", include("model_storage.urls")),
