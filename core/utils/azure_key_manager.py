@@ -38,6 +38,7 @@ class AzureKeyManager:
         self.container_name = os.getenv("AZURE_CONTAINER_NAME")
         self.connection_string = os.getenv("AZURE_CONNECTION_STRING")
         self.meshy_api_key = os.getenv("MESHY_API_KEY")
+        self.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
     def _load_from_azure_key_vault(self):
         """배포 환경: Azure Key Vault에서 Secret 가져오기"""
@@ -53,6 +54,7 @@ class AzureKeyManager:
         self.container_name = self._get_secret("azure-container-name")
         self.connection_string = self._get_secret("azure-connection-string")
         self.meshy_api_key = self._get_secret("meshy-api-key", strip=True)
+        self.OPENAI_API_KEY = self._get_secret("OPENAI-API-KEY")
 
     def _get_secret(self, secret_name, strip=False):
         """Key Vault에서 Secret을 안전하게 가져오는 메서드"""
