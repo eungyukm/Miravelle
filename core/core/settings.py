@@ -54,9 +54,6 @@ CACHES = {
 # user 모델 선언
 AUTH_USER_MODEL = "users.User"
 
-# OPEN AI
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 ALLOWED_HOSTS = [
     "miravelle-appservice-dsecega7bbhvefem.koreacentral-01.azurewebsites.net",
     "127.0.0.1",

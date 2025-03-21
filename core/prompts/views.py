@@ -7,7 +7,7 @@ import asyncio
 import os
 import openai
 from drf_yasg.utils import swagger_auto_schema 
-from .serializers import GeneratePromptSerializer
+from prompts.serializers import GeneratePromptSerializer
 
 from utils.azure_key_manager import AzureKeyManager
 
