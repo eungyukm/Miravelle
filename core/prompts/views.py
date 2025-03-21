@@ -23,6 +23,7 @@ async def generate_3d_prompt(user_input):
         "사용자의 요청을 분석하여 디테일한 프롬프트를 제공해야 해. "
         "프롬프트는 구체적인 특징(색상, 분위기, 배경, 스타일 등)을 포함해야 하며, "
         "모델링에 적합한 키워드 중심으로 작성해야 해."
+        "개행문자는 제거해 줘."
     )
 
     try:
@@ -70,6 +71,6 @@ class GeneratePromptAPI(APIView):
             loop.close()
 
             # JSON 형태로 응답 반환
-            return Response({"generated_prompt": optimized_prompt}, status=status.HTTP_200_OK)
+            return Response({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
