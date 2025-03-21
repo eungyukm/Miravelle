@@ -2,19 +2,44 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from openai import AsyncOpenAI
+from rest_framework.permissions import AllowAny
 import asyncio
 import os
+import json
+import sys
+import logging
+from openai import AsyncOpenAI
 import openai
 from drf_yasg.utils import swagger_auto_schema 
-from prompts.serializers import GeneratePromptSerializer
+from prompts.serializers import (
+    GeneratePromptSerializer, 
+    EnhancedPromptInputSerializer,
+    EnhancedPromptSerializer
+)
+from .models import EnhancedPrompt
 
-from utils.azure_key_manager import AzureKeyManager
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
-azure_keys = AzureKeyManager.get_instance()
-api_key = azure_keys.openai_api_key
+# 에이전트 임포트 경로 설정
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
+# API 키 직접 설정
+api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("Missing OpenAI API Key")
+
+# 에이전트 임포트
+try:
+    from agents.prompt_enhancer.api import prompt_enhancer_api
+    AGENT_ENABLED = True
+    logger.info("Successfully imported prompt_enhancer_api")
+except ImportError as e:
+    AGENT_ENABLED = False
+    logger.error(f"Error importing prompt_enhancer_api: {str(e)}")
+    print(f"Warning: Prompt enhancer agent could not be imported: {str(e)}")
 
 aclient = AsyncOpenAI(api_key=api_key)
 
@@ -78,3 +103,90 @@ class GeneratePromptAPI(APIView):
             return Response({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EnhancePromptAPI(APIView):
+    """
+    랭체인 에이전트를 사용하여 3D 모델 생성 프롬프트를 개선하는 API 뷰입니다.
+    """
+    # 인증 필요 없이 누구나 접근 가능하도록 설정
+    permission_classes = [AllowAny]
+    
+    @swagger_auto_schema(
+        operation_description="프롬프트 개선 에이전트 상태 확인",
+        responses={200: "API 활성화 상태"}
+    )
+    def get(self, request):
+        return Response({
+            "status": "active" if AGENT_ENABLED else "disabled",
+            "message": "Prompt enhancement agent is ready" if AGENT_ENABLED else "Prompt enhancement agent is not available"
+        }, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        request_body=EnhancedPromptInputSerializer,
+        operation_description="3D 모델 생성을 위한 프롬프트 개선 API",
+        responses={200: EnhancedPromptSerializer}
+    )
+    def post(self, request):
+        """
+        사용자가 입력한 프롬프트를 개선하여 더 좋은 프롬프트를 생성합니다.
+        """
+        serializer = EnhancedPromptInputSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        if not AGENT_ENABLED:
+            return Response(
+                {"error": "Prompt enhancement agent is not available"}, 
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        
+        try:
+            # 사용자 입력 프롬프트 가져오기
+            original_prompt = serializer.validated_data['prompt']
+            user_id = serializer.validated_data.get('user_id')
+            
+            # 에이전트를 사용하여 프롬프트 개선
+            result = prompt_enhancer_api.process_and_save(original_prompt)
+            
+            # 데이터베이스 저장 후 ID가 없으면 직접 저장
+            if not result.get('db_id'):
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                
+                # 사용자 정보 가져오기
+                user = None
+                if user_id:
+                    try:
+                        user = User.objects.get(id=user_id)
+                    except User.DoesNotExist:
+                        pass
+                
+                # 모델 직접 저장
+                enhanced_prompt = EnhancedPrompt.objects.create(
+                    user=user,
+                    original_prompt=result['original_prompt'],
+                    enhanced_prompts=json.dumps(result['enhanced_prompts']),
+                    selected_prompt=result['selected_prompt'],
+                    selection_reason=result.get('selection_reason', ''),
+                    scores=json.dumps(result.get('scores', {}))
+                )
+                
+                result['db_id'] = enhanced_prompt.id
+            
+            # EnhancedPrompt 객체 가져오기
+            enhanced_prompt = EnhancedPrompt.objects.get(id=result['db_id'])
+            
+            # 시리얼라이저를 사용하여 응답 데이터 생성
+            response_serializer = EnhancedPromptSerializer(enhanced_prompt)
+            
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {"error": f"Error processing prompt: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
