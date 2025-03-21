@@ -12,7 +12,8 @@ from prompts.serializers import GeneratePromptSerializer
 from utils.azure_key_manager import AzureKeyManager
 
 azure_keys = AzureKeyManager.get_instance()
-api_key = azure_keys.openai_api_key
+api_key = os.getenv("OPENAI_API_KEY")
+print(api_key)
 if not api_key:
     raise ValueError("Missing OpenAI API Key")
 
@@ -65,16 +66,19 @@ class GeneratePromptAPI(APIView):
         serializer = GeneratePromptSerializer(data=request.data)
         if serializer.is_valid():
             user_input = serializer.validated_data['user_input']
-            # OpenAI API 호출을 위한 사용자 입력
             user_request = "Create a 3D model based on 3D Model Prompt: {}".format(user_input)
 
-            # OpenAI API 호출을 비동기적으로 실행하고 결과를 얻음
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            optimized_prompt = loop.run_until_complete(generate_3d_prompt(user_request))
-            loop.close()
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                optimized_prompt = loop.run_until_complete(generate_3d_prompt(user_request))
+                loop.close()
 
-            # JSON 형태로 응답 반환
-            return Response({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)
+                return Response({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(
+                    {"error": f"API 호출 중 오류 발생: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

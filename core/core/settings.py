@@ -111,6 +111,8 @@ INSTALLED_APPS = [
 
     # API v1
     'api_v1',
+
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -208,56 +210,56 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # DRF 설정
-REST_FRAMEWORK = {
-    # **API 설정**
+# REST_FRAMEWORK = {
+#     # **API 설정**
 
-    # 1. 기본 인증 방식 (Authentication Classes)
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',  # Django 세션 인증 (웹 브라우저)
-        'rest_framework.authentication.TokenAuthentication',    # 토큰 인증 (API 클라이언트)
-        # 필요에 따라 JWT 인증 추가 가능:
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
+#     # 1. 기본 인증 방식 (Authentication Classes)
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.SessionAuthentication',  # Django 세션 인증 (웹 브라우저)
+#         'rest_framework.authentication.TokenAuthentication',    # 토큰 인증 (API 클라이언트)
+#         # 필요에 따라 JWT 인증 추가 가능:
+#         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ],
 
-    # 2. 기본 권한 설정 (Permission Classes)
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly', # 읽기 권한은 누구나, 쓰기 권한은 인증된 사용자만
-        # 'rest_framework.permissions.IsAuthenticated',         # 인증된 사용자만 접근 가능
-        # 'rest_framework.permissions.AllowAny',                # 누구나 접근 가능 (개발/테스트 환경)
-    ],
+#     # 2. 기본 권한 설정 (Permission Classes)
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticatedOrReadOnly', # 읽기 권한은 누구나, 쓰기 권한은 인증된 사용자만
+#         # 'rest_framework.permissions.IsAuthenticated',         # 인증된 사용자만 접근 가능
+#         # 'rest_framework.permissions.AllowAny',                # 누구나 접근 가능 (개발/테스트 환경)
+#     ],
 
-    # **페이지네이션 설정**
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', # 페이지 번호 기반 페이지네이션
-    'PAGE_SIZE': 10,        # 한 페이지당 항목 수
+#     # **페이지네이션 설정**
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', # 페이지 번호 기반 페이지네이션
+#     'PAGE_SIZE': 10,        # 한 페이지당 항목 수
 
-    # **기타 설정**
+#     # **기타 설정**
 
-    # 3. 예외 처리 (Exception Handling)
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler', # DRF 기본 예외 처리 사용
+#     # 3. 예외 처리 (Exception Handling)
+#     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler', # DRF 기본 예외 처리 사용
 
-    # 4. Content Negotiation 설정 (콘텐츠 협상)
-    'DEFAULT_CONTENT_TYPE': 'application/json', # 기본 콘텐츠 타입
+#     # 4. Content Negotiation 설정 (콘텐츠 협상)
+#     'DEFAULT_CONTENT_TYPE': 'application/json', # 기본 콘텐츠 타입
 
-    # 5. Renderer 설정 (응답 형식)
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',           # JSON 형식
-        'rest_framework.renderers.BrowsableAPIRenderer',    # browsable API (웹 브라우저)
-    ],
+#     # 5. Renderer 설정 (응답 형식)
+#     'DEFAULT_RENDERER_CLASSES': [
+#         'rest_framework.renderers.JSONRenderer',           # JSON 형식
+#         'rest_framework.renderers.BrowsableAPIRenderer',    # browsable API (웹 브라우저)
+#     ],
 
-    # 6. 파서 설정 (요청 형식)
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.MultiPartParser'
-    ],
+#     # 6. 파서 설정 (요청 형식)
+#     'DEFAULT_PARSER_CLASSES': [
+#         'rest_framework.parsers.JSONParser',
+#         'rest_framework.parsers.FormParser',
+#         'rest_framework.parsers.MultiPartParser'
+#     ],
 
-    # 7. API 버전 관리
-    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning', # Accept 헤더 기반 버전 관리
-    'DEFAULT_VERSION': 'v1',  # 기본 API 버전
+#     # 7. API 버전 관리
+#     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning', # Accept 헤더 기반 버전 관리
+#     'DEFAULT_VERSION': 'v1',  # 기본 API 버전
 
-    # 8. 스키마 생성 설정
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
-}
+#     # 8. 스키마 생성 설정
+#     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+# }
 
 
 # Internationalization
@@ -275,3 +277,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# 모든 도메인 허용
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ['*']
+CORS_ALLOW_HEADERS = ['*']
