@@ -9,7 +9,10 @@ import openai
 from drf_yasg.utils import swagger_auto_schema 
 from .serializers import GeneratePromptSerializer
 
-api_key = os.getenv("OPENAI_API_KEY")
+from utils.azure_key_manager import AzureKeyManager
+
+azure_keys = AzureKeyManager.get_instance()
+api_key = azure_keys.openai_api_key
 if not api_key:
     raise ValueError("Missing OpenAI API Key")
 
