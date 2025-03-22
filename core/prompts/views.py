@@ -11,17 +11,15 @@ from prompts.serializers import GeneratePromptSerializer
 
 from utils.azure_key_manager import AzureKeyManager
 
-azure_keys = AzureKeyManager.get_instance()
-api_key = os.getenv("OPENAI_API_KEY")
-print(api_key)
-if not api_key:
-    raise ValueError("Missing OpenAI API Key")
-
-aclient = AsyncOpenAI(api_key=api_key)
-
-
 # OpenAI 프롬프트 생성 함수
 async def generate_3d_prompt(user_input):
+    azure_keys = AzureKeyManager.get_instance()
+    api_key = azure_keys.openai_api_key
+    
+    if not api_key:
+        raise ValueError("Missing OpenAI API Key")
+
+    aclient = AsyncOpenAI(api_key=api_key)
     system_prompt = (
         "너는 3D 모델을 생성하기 위한 최적의 프롬프트를 만드는 AI야."
         "사용자의 요청을 분석하여 디테일한 프롬프트를 제공해야 해."
