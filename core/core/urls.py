@@ -46,3 +46,8 @@ urlpatterns = [
     path('swagger.json/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) #유저가 업로드한 파일들을 가져오는 경로
 
+SWAGGER_SETTINGS = {
+    'SECURE_SCHEMA': 'https',  # HTTP가 아닌 HTTPS 사용
+    'USE_SESSION_AUTH': False,
+    'PERSIST_AUTH': True,
+}
