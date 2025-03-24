@@ -35,7 +35,7 @@ urlpatterns = [
 
     # rest_framework
     path("api/v1/", include("api_v1.urls")),
-    path("api/v1/vision_eval/", include("vision_eval.urls")),
+    path("api/v1/vision/", include("vision_eval.urls")),
     
     # main page
     path("", include("articles.urls")),
