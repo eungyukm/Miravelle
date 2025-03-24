@@ -6,10 +6,9 @@ import asyncio
 import openai
 from drf_yasg.utils import swagger_auto_schema 
 from prompts.serializers import GeneratePromptSerializer
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse    # kmj 20250324 
-
+from django.utils.decorators import method_decorator # 0324 추가
+from django.contrib.auth.decorators import login_required # 0324 추가
+from django.http import JsonResponse # 0324 추가
 
 from utils.azure_key_manager import AzureKeyManager
 
