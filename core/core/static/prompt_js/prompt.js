@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const csrfToken = getCookie('csrftoken');  // CSRF 토큰 가져오기
+    console.log("csrfToken: ", csrfToken);
 
     if (!submitBtn || !userInput || !output || !loading || !error) {
         console.error("필수 요소가 존재하지 않습니다. HTML 구조를 확인하세요.");
