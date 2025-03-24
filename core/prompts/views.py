@@ -1,15 +1,14 @@
-# prompts/views.py
 from rest_framework.views import APIView
-from rest_framework.response import Response
+# from rest_framework.response import Response
 from rest_framework import status
 from openai import AsyncOpenAI
 import asyncio
 import openai
 from drf_yasg.utils import swagger_auto_schema 
 from prompts.serializers import GeneratePromptSerializer
-from rest_framework.renderers import TemplateHTMLRenderer
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse    # kmj 20250324 
 
 
 from utils.azure_key_manager import AzureKeyManager
@@ -55,12 +54,10 @@ async def generate_3d_prompt(user_input):
 # Django REST Framework API 엔드포인트
 @method_decorator(login_required(login_url='users:login'), name='dispatch')
 class GeneratePromptAPI(APIView):
-    renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'prompt.html'
     
     def get(self, request):
         message = "API is running"
-        return Response({"status": message}, template_name=self.template_name, status=status.HTTP_200_OK)
+        return JsonResponse({"status": message}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=GeneratePromptSerializer,
@@ -78,11 +75,11 @@ class GeneratePromptAPI(APIView):
                 optimized_prompt = loop.run_until_complete(generate_3d_prompt(user_request))
                 loop.close()
 
-                return Response({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)
+                return JsonResponse({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)   #kmj 20250324
             except Exception as e:
-                return Response(
+                return JsonResponse(
                     {"error": f"API 호출 중 오류 발생: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
