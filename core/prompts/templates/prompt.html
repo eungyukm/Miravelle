@@ -5,6 +5,7 @@
 {% if user.is_authenticated %}
     <div class="container mt-5">
         <h2>Generate 3D Model Prompt</h2>
+        <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
         <input type="text" id="userInput" class="form-control" placeholder="생성하고 싶은 모델을 설명해주세요." maxlength="500">  {# maxlength 추가 #}
         <button id="submitBtn" class="btn btn-dark mt-3">Generate</button>
         <div id="output" class="mt-4"></div>
@@ -12,15 +13,12 @@
         <div id="error" class="mt-3 text-danger" style="display:none;"></div> {# 오류 표시 #}
     </div>
 
-    <script>
-        const CSRF_TOKEN = "{{ csrf_token }}";  {# CSRF 토큰 #}
-    </script>
-    <script src="{% static 'prompt_js/prompt.js' %}"></script>
-
-{% else %}
+    
+    {% else %}
     <div class="container mt-5">
-        <h2>로그인이 필요합니다.</h2>
-        <p>이 페이지를 사용하려면 <a href="{% url 'users:login' %}">로그인</a>해주세요.</p>
+        <h2>Login required</h2>
+        <p>Please <a href="{% url 'users:login' %}">log in</a> to use this page.</p>
     </div>
-{% endif %}
+    {% endif %}
+<script src="{% static 'prompt_js/prompt.js' %}"></script>
 {% endblock %}
