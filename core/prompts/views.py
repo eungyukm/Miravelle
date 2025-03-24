@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from openai import AsyncOpenAI
 import asyncio
-import os
 import openai
 from drf_yasg.utils import swagger_auto_schema 
 from prompts.serializers import GeneratePromptSerializer
+from rest_framework.renderers import TemplateHTMLRenderer
+
 
 from utils.azure_key_manager import AzureKeyManager
 
@@ -51,10 +52,12 @@ async def generate_3d_prompt(user_input):
 
 # Django REST Framework API 엔드포인트
 class GeneratePromptAPI(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'prompt.html'
     
     def get(self, request):
         message = "API is running"
-        return Response({"status": message}, status=status.HTTP_200_OK)
+        return Response({"status": message}, template_name=self.template_name, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=GeneratePromptSerializer,
