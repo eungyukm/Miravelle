@@ -32,10 +32,17 @@ def login(request):
             auth_login(request, form.get_user())   # 로그인 하기
             request.session['user_id'] = user.id  # 세션에 user.id 저장
             
-            # 'next' 파라미터를 확인하고, 존재하면 해당 URL로, 없으면 'articles:main'으로 리디렉션
+            # 'next' 파라미터를 안전하게 처리
             next_url = request.GET.get('next')
             if next_url:
-                return redirect(next_url)
+                # next_url이 안전한 URL인지 확인하는 것이 중요 (보안상의 이유).
+                # is_safe_url()을 사용하여 도메인이 우리 사이트 내에 있는지 확인합니다.
+                from django.utils.http import is_safe_url
+                if is_safe_url(url=next_url, allowed_hosts=request.get_host()):
+                    return redirect(next_url)
+                else:
+                    # 안전하지 않은 URL인 경우, 기본 URL로 리디렉션
+                    return redirect("articles:main")
             else:
                 return redirect("articles:main")
             
@@ -44,7 +51,7 @@ def login(request):
             messages.error(request, "Invalid ID or Password.")
     else:    
         form = CustomAuthenticationForm()  # CustomAuthenticationForm 사용
-    context = {"form": form}
+    context = {"form": form, 'next': request.GET.get('next', '')} # next 값을 템플릿에 전달
     return render(request, "login.html", context)
 
 
