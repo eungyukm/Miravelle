@@ -71,6 +71,15 @@
                             <i class="bi bi-trash"></i> 삭제
                         </button>
                     </div>
+                    
+                    <!-- 커뮤니티에 게시하기 버튼 - 클릭 시 바로 게시 -->
+                    <div class="mt-2">
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-dark btn-block" 
+                                onclick="directPublish('{{ asset.mesh_model.job_id }}')">
+                            <i class="bi bi-share"></i> 커뮤니티에 게시하기
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -83,6 +92,7 @@
 </div>
 
 <script>
+// 에셋 삭제 함수
 function deleteMeshAsset(jobId) {
     if (confirm('정말 이 에셋을 삭제하시겠습니까?')) {
         fetch(`/assets/mesh/${jobId}/delete/`, {
@@ -106,6 +116,7 @@ function deleteMeshAsset(jobId) {
     }
 }
 
+// CSRF 토큰 가져오기
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -119,6 +130,31 @@ function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+// 커뮤니티에 직접 게시하기 함수
+function directPublish(jobId) {
+    if (confirm('이 모델을 커뮤니티에 게시하시겠습니까?')) {
+        fetch(`/assets/mesh/${jobId}/publish/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('모델이 커뮤니티에 게시되었습니다.');
+                window.location.href = '/article/';  // 커뮤니티 메인 페이지로 이동
+            } else {
+                alert(data.message || '게시 실패: 알 수 없는 오류가 발생했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('요청 오류:', error);
+            alert('게시 중 오류가 발생했습니다.');
+        });
+    }
 }
 </script>
 {% endblock %} 

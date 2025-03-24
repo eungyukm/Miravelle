@@ -14,6 +14,7 @@ import requests
 import logging
 import json
 import os
+from articles.models import Article  # 추가: Article 모델 임포트
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -119,6 +120,60 @@ def delete_mesh_asset(request, job_id):
     except Exception as e:
         return JsonResponse({
             "error": str(e)
+        }, status=500)
+
+@require_POST
+@login_required
+def publish_to_community(request, job_id):
+    """
+    메시 에셋을 커뮤니티에 바로 게시하는 API 뷰
+    """
+    try:
+        # 디버깅을 위한 로깅 추가
+        logger.info(f"게시 요청 받음: job_id={job_id}, 사용자={request.user.username}")
+        
+        # 요청된 에셋이 현재 사용자의 것인지 확인
+        mesh_asset = get_object_or_404(MeshAsset, mesh_model__job_id=job_id, mesh_model__user=request.user)
+        mesh_model = mesh_asset.mesh_model
+        
+        # 이미 게시된 적이 있는지 확인
+        if Article.objects.filter(job=mesh_model).exists():
+            logger.warning(f"이미 게시된 모델: job_id={job_id}")
+            return JsonResponse({
+                "success": False,
+                "message": "이미 게시된 모델입니다."
+            }, status=400)
+        
+        # 프롬프트 전체를 제목으로 사용 (제한하지 않음)
+        title = mesh_model.create_prompt if mesh_model.create_prompt else f"Mesh {mesh_model.job_id[:8]}"
+        
+        # 새 게시글 생성 - 최소한의 정보만 포함
+        article = Article(
+            user_id=request.user,
+            title=title,
+            job=mesh_model,
+            model_prompt=mesh_model.create_prompt or '',
+            texture_prompt='',
+            tags='3D, model',  # 기본 태그
+            image=''  # 임시로 빈 값 설정 (save 메서드에서 채워짐)
+        )
+        
+        # 게시글 저장 (save 메서드에서 model_seed 자동 생성)
+        article.save()
+        logger.info(f"게시글 생성 성공: id={article.id}, title={title}")
+        
+        # 성공 응답
+        return JsonResponse({
+            "success": True,
+            "article_id": article.id,
+            "message": "모델이 커뮤니티에 성공적으로 게시되었습니다."
+        })
+        
+    except Exception as e:
+        logger.error(f"Error publishing to community: {e}", exc_info=True)
+        return JsonResponse({
+            "success": False,
+            "message": f"게시 중 오류가 발생했습니다: {str(e)}"
         }, status=500)
 
 
