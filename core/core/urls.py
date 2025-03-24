@@ -33,8 +33,10 @@ urlpatterns = [
 
     path("publish/", include("model_storage.urls")),
 
-    path('api/v1/', include('api_v1.urls')),
-
+    # rest_framework
+    path("api/v1/", include("api_v1.urls")),
+    path("api/v1/vision/", include("vision.urls")),
+    
     # main page
     path("", include("articles.urls")),
 
