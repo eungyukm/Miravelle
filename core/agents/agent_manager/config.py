@@ -17,20 +17,20 @@ AGENT_IDLE_TIMEOUT = 3600  # 유휴 에이전트 시간 초과(초)
 
 # 매니저 설정
 HEALTH_CHECK_INTERVAL = 60  # 상태 확인 간격(초)
-API_TIMEOUT = 60  # API 요청 제한 시간(초)
+API_TIMEOUT = 30  # API 요청 제한 시간(초)
 QUEUE_MAX_SIZE = 100  # 작업 대기열 최대 크기
 RESULT_CACHE_TTL = 3600  # 결과 캐시 유효 시간(초)
 
 # 에이전트별 설정
 # 프롬프트 향상 에이전트 설정
 PROMPT_ENHANCER_CONFIG: Dict[str, Any] = {
-    "DEFAULT_MODEL": "gpt-4",
-    "TEMPERATURE": 0.7,
-    "MAX_TOKENS": 2000,
-    "TOP_P": 0.95,
-    "FREQUENCY_PENALTY": 0.0,
-    "PRESENCE_PENALTY": 0.0,
-    "NUM_ENHANCED_PROMPTS": 3,  # 생성할 향상된 프롬프트 수
+    "DEFAULT_MODEL": "gpt-4o", # AI 모델 선택
+    "TEMPERATURE": 0.7, # 생성 다양성 조절
+    "MAX_TOKENS": 2048,  # 최대 토큰 수
+    "TOP_P": 0.95, # 토큰 선택 확률 조절
+    "FREQUENCY_PENALTY": 0.0, # 빈도 제한 조절
+    "PRESENCE_PENALTY": 0.0, # 존재 제한 조절
+    "NUM_ENHANCED_PROMPTS": 5,  # 생성할 향상된 프롬프트 수
     "ENHANCEMENT_STRATEGIES": [
         "detail_addition",  # 세부 사항 추가
         "creative_expansion",  # 창의적 확장
@@ -47,26 +47,6 @@ PROMPT_ENHANCER_CONFIG: Dict[str, Any] = {
     "DB_SAVE_ENABLED": True,  # 데이터베이스 저장 활성화 여부
 }
 
-# 모델 평가 에이전트 설정
-MODEL_EVALUATOR_CONFIG: Dict[str, Any] = {
-    "DEFAULT_MODEL": "gpt-4",
-    "TEMPERATURE": 0.2,  # 평가에는 낮은 온도 사용
-    "MAX_TOKENS": 1000,
-    "EVALUATION_METRICS": [
-        "visual_quality",  # 시각적 품질
-        "prompt_adherence",  # 프롬프트 충실도
-        "technical_accuracy",  # 기술적 정확성
-        "creative_interpretation",  # 창의적 해석
-        "overall_score"  # 종합 점수
-    ],
-    "SCORING_SCALE": 10,  # 10점 만점
-    "FEEDBACK_DETAIL_LEVEL": "high",  # high/medium/low
-    "REFERENCE_ENABLED": True,  # 참조 이미지 비교 활성화 여부
-    "BATCH_SIZE": 5,  # 일괄 평가 크기
-    "API_ENDPOINT": "/api/models/evaluate/",
-    "AUTO_FEEDBACK_ENABLED": True,  # 자동 피드백 활성화 여부
-}
-
 # 자동화 에이전트 파이프라인 설정
 AUTOMATION_CONFIG: Dict[str, Any] = {
     "PIPELINE_ENABLED": False,  # 파이프라인 활성화 여부
@@ -77,12 +57,10 @@ AUTOMATION_CONFIG: Dict[str, Any] = {
     "PIPELINE_STEPS": [
         "prompt_generator",
         "prompt_enhancer",
-        "model_generator",
-        "model_evaluator"
+        "model_generator"
     ],
     "DEFAULT_PIPELINE_PARAMS": {
         "num_models": 3,
-        "enhancement_level": "high",
-        "evaluation_required": True
+        "enhancement_level": "high"
     }
 } 
