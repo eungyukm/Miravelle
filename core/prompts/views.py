@@ -19,15 +19,36 @@ from prompts.serializers import (
 from .models import EnhancedPrompt
 from utils.azure_key_manager import AzureKeyManager
 
+# 로깅 설정
+logger = logging.getLogger(__name__)
+
+# 에이전트 임포트 경로 설정
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
+# API 키 직접 설정
+azure_keys = AzureKeyManager.get_instance()
+api_key = azure_keys.openai_api_key
+if not api_key:
+    raise ValueError("Missing OpenAI API Key")
+
+# 에이전트 임포트
+try:
+    from agents.prompt_enhancer.api import prompt_enhancer_api
+    AGENT_ENABLED = True
+    logger.info("Successfully imported prompt_enhancer_api")
+except ImportError as e:
+    AGENT_ENABLED = False
+    logger.error(f"Error importing prompt_enhancer_api: {str(e)}")
+    print(f"Warning: Prompt enhancer agent could not be imported: {str(e)}")
+
+# 전역 OpenAI 클라이언트 설정
+aclient = AsyncOpenAI(api_key=api_key)
+
 # OpenAI 프롬프트 생성 함수
 async def generate_3d_prompt(user_input):
-    azure_keys = AzureKeyManager.get_instance()
-    api_key = azure_keys.openai_api_key
-    
-    if not api_key:
-        raise ValueError("Missing OpenAI API Key")
-
-    aclient = AsyncOpenAI(api_key=api_key)
+    # 전역 클라이언트 사용
     system_prompt = (
         "너는 3D 모델을 생성하기 위한 최적의 프롬프트를 만드는 AI야."
         "사용자의 요청을 분석하여 디테일한 프롬프트를 제공해야 해."
