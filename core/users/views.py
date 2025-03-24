@@ -31,7 +31,14 @@ def login(request):
             # Log the user in
             auth_login(request, form.get_user())   # 로그인 하기
             request.session['user_id'] = user.id  # 세션에 user.id 저장
-            return redirect("articles:main")
+            
+            # 'next' 파라미터를 확인하고, 존재하면 해당 URL로, 없으면 'articles:main'으로 리디렉션
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            else:
+                return redirect("articles:main")
+            
         else:
             # 유효하지 않을 경우, 오류 메시지 추가
             messages.error(request, "Invalid ID or Password.")
