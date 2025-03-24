@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="wrapper">
@@ -12,7 +13,7 @@
                 <button class="btn-custom w-100">
                     Create to image 📷 <i class="fas fa-image"></i>
                 </button>
-                <button class="btn-custom w-100" onclick="location.href='/api/prompts/'">
+                <button class="btn-custom w-100" onclick="location.href='{% url 'prompts:generate-prompt-api' %}'">
                     Create to 3D Model Prompt 🤖
                 </button>
             </div>
@@ -230,4 +231,5 @@
         }
     }
 </style>
+<script src="{% static 'prompt_js/prompt.js' %}"></script>
 {% endblock %}
