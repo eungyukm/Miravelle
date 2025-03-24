@@ -9,13 +9,6 @@ from .serializers import EvaluationSerializer
 from .models import Evaluation
 
 @api_view(['GET'])
-def get_image_url(request):
-    data = {
-        'url': 'https://example.com'
-    }
-    return Response(data)
-
-@api_view(['GET'])
 def get_evaluation_image(request):
     try:
         # 평가되지 않은 이미지 찾기 (Evaluation 모델에 없는 경우)
