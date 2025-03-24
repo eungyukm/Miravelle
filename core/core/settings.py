@@ -102,7 +102,7 @@ INSTALLED_APPS = [
     "utils", # 유틸리티 관련 테스팅 및 관리 앱
     "texture", # 텍스처 작업 공간 앱
     "prompts", # 유저의 프롬프트를 보조해주는 앱
-    "vision_eval", # 유저가 생성한 모델링의 이미지를 평가하는 앱
+    "vision", # 유저가 생성한 모델링의 이미지를 평가하는 앱
 
     # DRF & Swagger
     "rest_framework",
