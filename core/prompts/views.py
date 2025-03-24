@@ -8,6 +8,8 @@ import openai
 from drf_yasg.utils import swagger_auto_schema 
 from prompts.serializers import GeneratePromptSerializer
 from rest_framework.renderers import TemplateHTMLRenderer
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 
 from utils.azure_key_manager import AzureKeyManager
@@ -51,6 +53,7 @@ async def generate_3d_prompt(user_input):
 
 
 # Django REST Framework API 엔드포인트
+@method_decorator(login_required(login_url='users:login'), name='dispatch')
 class GeneratePromptAPI(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'prompt.html'
