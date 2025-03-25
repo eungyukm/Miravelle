@@ -8,15 +8,14 @@
 
         <form id="promptForm">
             {% csrf_token %}
-            <input type="text" id="userInput" class="form-control" placeholder="생성하고 싶은 모델을 설명해주세요." maxlength="500">  {# maxlength 추가 #}
-            <button id="submitBtn" class="btn btn-dark mt-3">Generate</button>
+            <input type="text" id="userInput" class="form-control" placeholder="생성하고 싶은 모델을 설명해주세요." maxlength="500">  <!--maxlength 추가-->
+            <button id="submitBtn" class="btn btn-dark mt-3" type="button">Generate</button> <!-- 250325 버튼 타입 추가-->
         </form>
-        
-        <div id="output" class="mt-4"></div>
-        <div id="loading" class="mt-3" style="display:none;">loading...</div>  {# 로딩 표시 #}
-        <div id="error" class="mt-3 text-danger" style="display:none;"></div> {# 오류 표시 #}
-    </div>
 
+        <div id="output" class="mt-4"></div>
+        <div id="loading" class="mt-3" style="display:none;">loading...</div>  <!--로딩 표시-->
+        <div id="error" class="mt-3 text-danger" style="display:none;"></div> <!--오류 표시-->
+    </div>
     
     {% else %}
     <div class="container mt-5">
