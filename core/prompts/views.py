@@ -1,4 +1,3 @@
-# prompts/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,14 +8,20 @@ import json
 import sys
 import logging
 from openai import AsyncOpenAI
-import openai
-from drf_yasg.utils import swagger_auto_schema 
 from prompts.serializers import (
-    GeneratePromptSerializer, 
     EnhancedPromptInputSerializer,
     EnhancedPromptSerializer
 )
 from .models import EnhancedPrompt
+import openai
+from drf_yasg.utils import swagger_auto_schema 
+from prompts.serializers import GeneratePromptSerializer
+from django.utils.decorators import method_decorator # 250324 추가
+from django.contrib.auth.decorators import login_required # 250324 추가
+from django.http import JsonResponse # 250324 추가
+from django.shortcuts import render # 250325 추가
+
+
 from utils.azure_key_manager import AzureKeyManager
 
 # 로깅 설정
@@ -79,11 +84,15 @@ async def generate_3d_prompt(user_input):
 
 
 # Django REST Framework API 엔드포인트
+@method_decorator(login_required(login_url='users:login'), name='dispatch')
 class GeneratePromptAPI(APIView):
     
     def get(self, request):
-        message = "API is running"
-        return Response({"status": message}, status=status.HTTP_200_OK)
+        # 250325 : API 상태 확인 대신 prompt.html 렌더링
+        print(self.__class__.__name__ + "request: ", request) # request가 찍히는지 확인 250325
+        return render(request, "prompt.html")
+        # message = "API가 사용 가능한 상태입니다."
+        # return JsonResponse({"status": message}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=GeneratePromptSerializer,
@@ -100,15 +109,16 @@ class GeneratePromptAPI(APIView):
                 asyncio.set_event_loop(loop)
                 optimized_prompt = loop.run_until_complete(generate_3d_prompt(user_request))
                 loop.close()
-
-                return Response({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)
+                print("optimized_prompt: ", optimized_prompt) # optimized_prompt가 출력되는지 확인 250325
+                
+                return JsonResponse({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)   # 20250324
             except Exception as e:
-                return Response(
+                return JsonResponse(
                     {"error": f"API 호출 중 오류 발생: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EnhancePromptAPI(APIView):
@@ -196,3 +206,4 @@ class EnhancePromptAPI(APIView):
                 {"error": f"Error processing prompt: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+

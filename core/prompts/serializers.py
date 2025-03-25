@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import EnhancedPrompt
 
 class GeneratePromptSerializer(serializers.Serializer):
-    user_input = serializers.CharField(required=True, help_text="3D 모델을 생성하기 위한 사용자 입력")
+    user_input = serializers.CharField(required=True, help_text="3D 모델을 생성하기 위한 사용자 입력", max_length=500)  # 입력 길이 제한
 
 
 class EnhancedPromptInputSerializer(serializers.Serializer):
