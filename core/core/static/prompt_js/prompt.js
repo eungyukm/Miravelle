@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = getCookie('csrftoken');  // CSRF 토큰 가져오기
     const API_URL = '/api/prompts/';  // 백엔드 API의 URL
 
-    // 콘솔에서 CSRF 토큰이 잘 가져와졌는지 확인 (디버깅용)
+    // 콘솔에서 CSRF 토큰이 잘 가져와졌는지 확인 (디버깅용) 250324
     console.log("csrfToken: ", csrfToken);
 
     // 필수 요소가 없을 경우 콘솔에 오류 메시지를 출력하고 코드 실행을 중단
@@ -86,19 +86,31 @@ document.addEventListener('DOMContentLoaded', function() {
             loading.style.display = "none";
             output.style.display = "block";  // 결과 표시 활성화
 
-            // 서버 응답이 정상적이지 않을 경우 처리
-            if (!response.ok) {
-                return response.text().then(text => {  // 응답 본문을 가져옴
-                    try {
-                        const err = JSON.parse(text);  // JSON으로 변환 시도
-                        throw new Error(err.error || "API 요청 실패");  // 서버에서 보낸 오류 메시지 출력
-                    } catch {
-                        throw new Error("서버 오류: 예상치 못한 응답을 받았습니다.");  // JSON 변환 실패 시 일반 오류 처리
+            // // 서버 응답이 정상적이지 않을 경우 처리
+            // if (!response.ok) {
+            //     return response.text().then(text => {  // 응답 본문을 가져옴
+            //         try {
+            //             const err = JSON.parse(text);  // JSON으로 변환 시도
+            //             throw new Error(err.error || "API 요청 실패");  // 서버에서 보낸 오류 메시지 출력
+            //         } catch {
+            //             throw new Error("서버 오류: 예상치 못한 응답을 받았습니다.");  // JSON 변환 실패 시 일반 오류 처리
+            //         }
+            //     });
+            // }
+            // return response.json();  // 응답을 JSON 형식으로 변환
+
+            // 250325 추가된 코드
+            return response.json().then(data =>
+                {
+                    if(!response.ok){   //문제가 있으면
+                        throw new Error(data.error || "API 요청 실패!");
                     }
-                });
-            }
-            return response.json();  // 응답을 JSON 형식으로 변환
-        })
+                    else{   //문제가 없으면
+                        console.log("data :", data); // AI가 뱉어낸 프롬프트 data 확인 250325
+                        return data;    //정상적인 응답 반환
+                    }
+                });})
+    
         .then(data => {
             console.log("data : ", data); // data가 받아지는지 확인 250325
             // 서버 응답이 정상적일 경우 결과 출력
