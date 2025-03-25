@@ -58,6 +58,7 @@ class GeneratePromptAPI(APIView):
     
     def get(self, request):
         # 250325 : API 상태 확인 대신 prompt.html 렌더링
+        print(self.__class__.__name__ + "request: ", request) # request가 찍히는지 확인 250325
         return render(request, "prompt.html")
         # message = "API가 사용 가능한 상태입니다."
         # return JsonResponse({"status": message}, status=status.HTTP_200_OK)
@@ -77,8 +78,9 @@ class GeneratePromptAPI(APIView):
                 asyncio.set_event_loop(loop)
                 optimized_prompt = loop.run_until_complete(generate_3d_prompt(user_request))
                 loop.close()
-
-                return JsonResponse({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)   #kmj 20250324
+                print("optimized_prompt: ", optimized_prompt) # optimized_prompt가 출력되는지 확인 250325
+                
+                return JsonResponse({"Miravelle": optimized_prompt}, status=status.HTTP_200_OK)   # 20250324
             except Exception as e:
                 return JsonResponse(
                     {"error": f"API 호출 중 오류 발생: {str(e)}"},
