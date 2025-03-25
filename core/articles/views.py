@@ -6,8 +6,8 @@ from .models import Article, Like
 from django.http import HttpResponseForbidden # error 403(서버에 요청은 갔지만, 권한 때문에 요청 거절)
 from .forms import ArticleForm
 from django.db import DatabaseError
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage  # 250325 추가
 
-from workspace.models import MeshModel
 
 def get_image_url(article):
     if article.image_path:
@@ -21,11 +21,24 @@ def get_image_url(article):
 class ArticleList(View):
     def get(self, request):
         try:
-            article_list = Article.objects.all()
+            article_list = Article.objects.all().order_by("-id") # 250325 수정
         
             if not article_list.exists():
                 article_list = None
-
+            
+            page = request.GET.get("page", 1) # URL에서 현재 페이지 번호를 가져옴 (기본값: 1) 250325 추가
+            paginator = Paginator(article_list, 6) # 페이지당 6개의 게시물로 페이지네이터 생성 250325 추가
+            
+            try: # 예외 처리 추가
+                articles = paginator.get_page(page)  # 요청된 페이지에 해당하는 게시물 가져오기 250325 추가
+            except PageNotAnInteger: # 페이지 번호가 정수가 아닌 경우 250325 추가
+                articles = paginator.get_page(1) # 1페이지를 보여준다 250325 추가
+            except EmptyPage: # 페이지가 비어있는 경우 250325 추가
+                articles = paginator.get_page(paginator.num_pages) # 마지막 페이지를 보여준다 250325 추가
+        
+            is_paginated = articles.has_other_pages()  # 페이지네이션이 필요한지 확인 250325 추가
+            
+            
         except DatabaseError as db_err:
             print(f"Database error occurred: {db_err}")
             article_list = None  # 데이터베이스 오류 시 None 설정
@@ -34,7 +47,11 @@ class ArticleList(View):
             print(f"Unexpected error occurred: {e}")
             article_list = None  # 기타 예외 발생 시 None 설정
 
-        context = {"article_list": article_list}
+        context = {
+            "article_list": article_list,
+            "articles": articles,  # 현재 페이지의 게시물 250325 추가
+            "is_paginated": is_paginated,  # 페이지네이션 UI를 표시할지 여부 250325 추가
+            }
         return render(request, "main.html", context)
     
 # 좋아요 게시물
@@ -142,4 +159,3 @@ class ArticleDetail(LoginRequiredMixin, View):
             "job_id": job_id,  # job_id 값만 템플릿에 전달
         }
         return render(request, "detail.html", content)
-        
