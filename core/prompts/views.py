@@ -6,9 +6,11 @@ import asyncio
 import openai
 from drf_yasg.utils import swagger_auto_schema 
 from prompts.serializers import GeneratePromptSerializer
-from django.utils.decorators import method_decorator # 0324 추가
-from django.contrib.auth.decorators import login_required # 0324 추가
-from django.http import JsonResponse # 0324 추가
+from django.utils.decorators import method_decorator # 250324 추가
+from django.contrib.auth.decorators import login_required # 250324 추가
+from django.http import JsonResponse # 250324 추가
+from django.shortcuts import render # 250325 추가
+
 
 from utils.azure_key_manager import AzureKeyManager
 
@@ -55,8 +57,10 @@ async def generate_3d_prompt(user_input):
 class GeneratePromptAPI(APIView):
     
     def get(self, request):
-        message = "API is running"
-        return JsonResponse({"status": message}, status=status.HTTP_200_OK)
+        # 250325 : API 상태 확인 대신 prompt.html 렌더링
+        return render(request, "prompt.html")
+        # message = "API가 사용 가능한 상태입니다."
+        # return JsonResponse({"status": message}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=GeneratePromptSerializer,
