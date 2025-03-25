@@ -72,6 +72,53 @@
                         </div>
                     {% endif %}
                 </div>
+
+                <!-- Pagination 250325 추가 -->
+                {% if is_paginated %} <!-- 페이지네이션이 필요한 경우 실행 -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center"> <!-- 부트스트랩 pagination 클래스 적용, 가운데 정렬 -->
+
+                        {% if articles.has_previous %} <!-- 이전 페이지가 있는 경우 -->
+                            <li class="page-item">
+                                <!-- 이전 페이지 링크, articles:main url 사용, 이전 페이지 번호 전달, 접근성 aria-label -->
+                                <a class="page-link" href="{% url "articles:main" %}?page={{ articles.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">«</span> <!-- 이전 페이지 화살표, 스크린 리더에서 숨김 -->
+                                </a>
+                            </li>
+                            {% else %} <!-- 이전 페이지가 없는 경우 -->
+                            <li class="page-item disabled">
+                                <a class="page-link">«</a>
+                            </li>
+                        {% endif %}
+
+                        {% for i in articles.paginator.page_range %} <!-- 페이지 범위 순회 -->
+                        {% if articles.number == i %} <!-- 현재 페이지인 경우 -->
+                        <li class="page-item active" aria-current="page"> <!-- aria-current로 현재 페이지 표시 -->
+                            <a class="page-link" href="#">{{ i }}</a> <!-- 현재 페이지 번호 (링크 없음) -->
+                        </li>
+
+                        {% else %} <!-- 현재 페이지가 아닌 경우 -->
+                        <!-- 다른 페이지로 이동하는 링크, 페이지 번호 전달 -->
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if articles.has_next %} <!-- 다음 페이지가 있는 경우 -->
+                            <li class="page-item" aria-current="page"> <!-- aria-current로 현재 페이지 표시 -->
+                                <!-- 다음 페이지 링크, articles:main url 사용, 다음 페이지 번호 전달, 접근성 aria-label -->
+                                <a class="page-link" href="{% url "articles:main" %}?page={{ articles.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">»</span> <!-- 다음 페이지 화살표, 스크린 리더에서 숨김 -->
+                                </a>
+                            </li>
+                            {% else %} <!-- 다음 페이지가 없는 경우 -->
+                            <li class="page-item disabled">
+                                <a class="page-link">»</a>
+                              </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                <!-- Pagination End 250325 추가 -->
             </div>
         </div>
     </div>
