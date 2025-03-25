@@ -21,8 +21,8 @@
             <!-- Image Gallery -->
             <div class="col-md-9">
                 <div class="row">
-                    {% if articles %}
-                        {% for article in articles %}
+                    {% if articles %} <!--변수명 수정, "article_list -> articles" 250325-->
+                        {% for article in articles %} <!--변수명 수정, "article_list -> articles" 250325-->
                         <div class="col-md-4">
                             <div class="main-card">
                                 <a style="color: inherit; text-decoration: none;" href="{% url 'articles:articledetail' article.pk %}">
