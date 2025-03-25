@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 버튼 클릭 시 실행되는 함수
     submitBtn.addEventListener('click', function() {
+        console.log("generate button click"); // click을 눌렀을 때 콘솔 확인 250325
         const inputText = userInput.value;  // 사용자가 입력한 텍스트 가져오기
 
         // 입력값 검증 (빈 입력 방지)
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             // 요청이 끝났으므로 로딩 표시 숨기기
+            console.log("response : ", response); // response가 받아지는지 확인 250325
             loading.style.display = "none";
             output.style.display = "block";  // 결과 표시 활성화
 
@@ -98,8 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();  // 응답을 JSON 형식으로 변환
         })
         .then(data => {
+            console.log("data : ", data); // data가 받아지는지 확인 250325
             // 서버 응답이 정상적일 경우 결과 출력
             if (data.Miravelle) {
+                console.log("data.Miravelle : ", data.Miravelle) // Miravelle data가 잘 넘어오는지 확인 250325
                 output.textContent = data.Miravelle;  // 서버에서 받은 결과 출력
             } else {
                 throw new Error(data.error || "서버 응답 오류: 결과를 가져올 수 없습니다.");  // 예상과 다른 응답 처리
