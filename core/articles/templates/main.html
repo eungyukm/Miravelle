@@ -21,8 +21,8 @@
             <!-- Image Gallery -->
             <div class="col-md-9">
                 <div class="row">
-                    {% if article_list %}
-                        {% for article in article_list %}
+                    {% if articles %}
+                        {% for article in articles %}
                         <div class="col-md-4">
                             <div class="main-card">
                                 <a style="color: inherit; text-decoration: none;" href="{% url 'articles:articledetail' article.pk %}">
