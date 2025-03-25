@@ -32,7 +32,7 @@
 {% block content %}
 <div class="container py-4">
     <!-- 페이지 제목 섹션 -->
-    <div class="row mb-4">
+    <div class="row mb-2">
         <div class="col d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="text-dark mb-0">My 3D Assets</h2>
@@ -42,35 +42,51 @@
 
     <!-- 메시 생성 에셋 -->
     <div class="row g-4">
-        {% for asset in mesh_assets %}
+        {% for asset in assets %}
         <div class="col-md-6 col-lg-4">
             <div class="card border-0">
                 {% if asset.thumbnail_url %}
                 <img src="{{ asset.thumbnail_url }}" 
                      class="card-img-top" 
                      alt="{{ asset.title }}"
-                     style="height: 200px; object-fit: cover;">
+                     style="height: 300px; object-fit: cover; margin-bottom: 0;">
                 {% endif %}
                 
                 <div class="card-body px-0 pt-3 pb-4">
-                    <h2 class="h5 mb-1">Mesh {{ asset.mesh_model.job_id|slice:":8" }}</h2>
-                    <p class="text-muted">프롬프트: {{ asset.prompt|default:"정보 없음" }}</p>
-                    <p class="text-muted small">생성일: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
-                    
-                    <div class="mt-2">
-                        {% if asset.fbx_url %}
-                        <a href="{{ asset.fbx_url }}" 
-                           class="btn btn-sm btn-outline-dark me-2" 
-                           download>
-                            <i class="bi bi-download"></i> 다운로드
-                        </a>
-                        {% endif %}
-                        
-                        <button onclick="deleteMeshAsset('{{ asset.mesh_model.job_id }}')" 
-                                class="btn btn-sm btn-outline-dark">
-                            <i class="bi bi-trash"></i> 삭제
-                        </button>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h2 class="h5 mb-0">Mesh {{ asset.mesh_model.job_id|slice:":8" }}</h2>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-dark btn-sm dropdown-toggle"
+                            type="button" 
+                            id="dropdownMenuButton1" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false"></button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ asset.fbx_url }}" download>
+                                        <i class="bi bi-download"></i> FBX Download
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="publishToCommunity('{{ asset.id }}'); return false;">
+                                        <i class="bi bi-share"></i> Community Publish
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" onclick="deleteMeshAsset('{{ asset.mesh_model.job_id }}'); return false;">
+                                        <i class="bi bi-trash"></i> Delete Asset
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
+                    <div class="prompt-container">
+                        <p class="text-muted mb-0">
+                            <span class="prompt-label">Prompt:</span> <span class="prompt-text" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ asset.prompt|default:'정보 없음' }}">{{ asset.prompt|default:"정보 없음" }}</span>
+                        </p>
+                    </div>
+                    <p class="text-muted small mb-0">created_at: {{ asset.mesh_model.created_at|date:"Y.m.d" }}</p>
                 </div>
             </div>
         </div>
@@ -80,6 +96,49 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if assets.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ assets.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">«</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link">«</a>
+                </li>
+            {% endif %}
+
+            {% for i in assets.paginator.page_range %}
+                {% if assets.number == i %}
+                    <li class="page-item active" aria-current="page">
+                        <a class="page-link" href="#">{{ i }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if assets.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ assets.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">»</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link">»</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <script>
@@ -106,6 +165,30 @@ function deleteMeshAsset(jobId) {
     }
 }
 
+function publishToCommunity(assetId) {
+    if (confirm('이 에셋을 커뮤니티에 게시하시겠습니까?')) {
+        fetch(`/assets/${assetId}/publish/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('성공적으로 커뮤니티에 게시되었습니다!');
+            } else {
+                alert('게시 중 오류가 발생했습니다: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('게시 중 오류가 발생했습니다.');
+        });
+    }
+}
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -120,5 +203,162 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Bootstrap 툴팁 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            html: true,
+            template: '<div class="tooltip prompt-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+        })
+    })
+});
 </script>
+
+<style>
+/* Card Styling */
+.card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 0px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Handling */
+.card-img-top {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    overflow: hidden;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.card-img-top img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card-img-top img:hover {
+    transform: scale(1.05);
+}
+
+.card-body {
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Prompt Styling */
+.prompt-container {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.prompt-label {
+    color: #666;
+    vertical-align: middle;
+}
+
+.prompt-text {
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    max-width: calc(100% - 80px);
+    display: inline-block;
+    vertical-align: middle;
+    padding-bottom: 1px;
+}
+
+/* 툴팁 스타일링 */
+.tooltip.prompt-tooltip .tooltip-inner {
+    max-width: 300px;
+    padding: 10px;
+    color: #fff;
+    text-align: left;
+    background-color: rgba(0, 0, 0, 0.85);
+    border-radius: 6px;
+    font-size: 14px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* Dropdown Button Styling */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-outline-dark {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: #343a40;
+    color: #343a40;
+    transition: all 0.2s ease;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-outline-dark:hover {
+    background-color: #e9ecef;
+    border-color: #343a40;
+    color: #343a40;
+}
+
+.dropdown-menu {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    top: 100%; /* 아래로 펼쳐지게 설정 */
+    left: auto;
+    right: 0;
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto;
+}
+
+.dropdown-item {
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    color: #495057;
+    background-color: #e9ecef;
+}
+
+.dropdown-item.text-danger {
+    color: #dc3545;
+}
+
+.dropdown-item.text-danger:hover {
+    color: #dc3545;
+    background-color: #fee2e2;
+}
+
+.mt-2 {
+    margin-top: auto !important;
+}
+</style>
 {% endblock %} 
