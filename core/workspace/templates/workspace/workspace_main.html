@@ -175,7 +175,7 @@
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="prompt" class="form-label">Prompt</label>
-                    <input type="text" id="prompt" name="prompt" class="form-control" required>
+                    <textarea id="prompt" name="prompt" class="form-control" rows="10" required></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -197,6 +197,11 @@
 
                 <br/>
 
+                <!-- 프롬프트 향상 버튼 추가 -->
+                <div class="mb-3">
+                    <button type="button" id="enhancePromptBtn" class="btn btn-secondary w-100">EnhancePrompt</button>
+                </div>
+
                 <button type="submit" id="generateBtn" class="btn btn-dark w-100">Generate Model</button>
             </form>
         </div>
@@ -210,6 +215,7 @@
             </div>
 
             <br/>
+
             <button id="refineBtn" class="btn btn-dark w-100" disabled>Refine Mesh</button>
 
             <div class="d-grid mt-3">
@@ -393,6 +399,8 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const generateBtn = document.getElementById("generateBtn");
+    const enhancePromptBtn = document.getElementById("enhancePromptBtn");
+    const promptInput = document.getElementById("prompt");
     const errorMessage = document.getElementById("error-message");
     const refineBtn = document.getElementById("refineBtn");
     const progressBar = document.getElementById("progressBar");
@@ -620,6 +628,65 @@ document.addEventListener("DOMContentLoaded", () => {
             publishBtn.classList.add('disabled');
         }
     }
+
+    const API_URL = '/api/prompts/';  // 백엔드 API의 URL
+
+    // 버튼 클릭 시 실행되는 함수
+    enhancePromptBtn.addEventListener('click', function() {
+        const inputText = promptInput.value;  // 사용자가 입력한 텍스트 가져오기
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+        // 입력값 검증 (빈 입력 방지)
+        if (!inputText) {
+            alert("프롬프트를 입력해 주세요.");
+            return;  // 요청 중단
+        }
+
+        // 글자 수 제한 (500자 초과 시 오류 메시지 출력)
+        if (inputText.length > 500) {
+            alert("입력은 500자를 초과할 수 없습니다.");
+            return;
+        }
+
+        // 버튼 클릭 시 처리중임을 표시하고, 버튼 비활성화
+        enhancePromptBtn.disabled = true;
+        enhancePromptBtn.textContent = "처리중...";
+
+        // 백엔드로 AJAX 요청 보내기 (fetch API 사용)
+        fetch(API_URL, {  
+            method: 'POST',  // POST 요청
+            headers: {
+                'Content-Type': 'application/json',  // JSON 데이터 타입 설정
+                'X-CSRFToken': csrfToken  // CSRF 토큰 추가
+            },
+            body: JSON.stringify({ user_input: inputText })  // 사용자의 입력을 JSON 형식으로 전송
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {  // 에러 처리
+                    throw new Error(data.error || "API 요청 실패!");
+                } else {  // 정상적인 응답이면 data 반환
+                    return data;
+                }
+            });
+        })
+        .then(data => {
+            if (data.Miravelle) {
+                promptInput.value = data.Miravelle;
+            } else {
+                throw new Error(data.error || "서버 응답 오류: 결과를 가져올 수 없습니다.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert(err.message);
+        })
+        .finally(() => {
+            // 요청이 끝난 후 버튼을 다시 활성화 및 원래 텍스트 복원
+            enhancePromptBtn.disabled = false;
+            enhancePromptBtn.textContent = "EnhancePrompt";
+        });
+    });
 
     publishBtn.onclick = () => publishArticle();
 });
