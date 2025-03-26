@@ -28,8 +28,7 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             # Log the user in
-            auth_login(request, form.get_user())   # 로그인 하기
-            request.session['user_id'] = user.id  # 세션에 user.id 저장
+            auth_login(request, user)   # 로그인 하기
             
             # 'next' 파라미터를 안전하게 처리
             next_url = request.GET.get('next')
