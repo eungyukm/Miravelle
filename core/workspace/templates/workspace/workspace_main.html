@@ -34,13 +34,13 @@
         }
 
         #sidebar {
-            width: 240px;
-            background-color: #f8f8f8;
+            width: 180px;
+            background-color:#ffffff;
             padding: 24px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border-right: 1px solid #e0e0e0;
+            border-right: 2px solid #e0e0e0;
             box-sizing: border-box;
         }
 
@@ -100,7 +100,7 @@
         }
 
         #control-panel {
-            width: 480px;
+            width: 330px;
             background-color: #ffffff;
             padding: 24px;
             display: flex;
@@ -151,11 +151,11 @@
 <div class="layout">
     <!-- 좌측 사이드바 -->
     <div id="sidebar">
-        <div class="sidebar-icons">
-            <button class="sidebar-icon-btn" onclick="switchPanel('model')">
+        <div class="col-md-12">
+            <button class="btn-custom w-100" onclick="switchPanel('model')">
                 <i class="fas fa-cube"></i> Model
             </button>
-            <button class="sidebar-icon-btn" onclick="switchPanel('texture')">
+            <button class="btn-custom w-100" onclick="switchPanel('texture')">
                 <i class="fas fa-paint-brush"></i> Texture
             </button>
         </div>
@@ -171,12 +171,12 @@
         <div id="model-form" class="panel-content active">
             <form id="meshForm">
                 {% csrf_token %}
-                <div class="mb-3">
+                <div class="mb-2">
                     <label for="prompt" class="form-label">Prompt</label>
                     <textarea id="prompt" name="prompt" class="form-control" rows="10" required></textarea>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-2">
                     <label for="art_style" class="form-label">Art Style</label>
                     <select id="art_style" name="art_style" class="form-select">
                         <option value="realistic">Realistic</option>
