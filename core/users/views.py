@@ -3,7 +3,6 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
-from django.urls import reverse
 from django.contrib import messages
 
 
@@ -13,13 +12,11 @@ def Register(request):
         form = CustomUserCreationForm(request.POST)   # 바인딩 form
         if form.is_valid():
             user = form.save()
-            # 로그인 페이지 URL을 가져옴
-            login_url = reverse("users:login")
-            return redirect(login_url)
+            messages.success(request, "회원가입이 완료되었습니다. 로그인해주세요.") # 250326 추가
+            return redirect("users:login")
     else:
         form = CustomUserCreationForm()
-    context = {'form': form}
-    return render(request, "register.html", context)
+    return render(request, "register.html", {'form': form}) # 250326 수정
 
 
 # 로그인
