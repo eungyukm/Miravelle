@@ -1,21 +1,15 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views import View
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views.decorators.http import require_POST
-from django.utils import timezone
-from datetime import timedelta, datetime
+from django.views import View
+from django.http import JsonResponse
+from django.db import DatabaseError
+from utils.azure_key_manager import AzureKeyManager
 from workspace.models import MeshModel
 from .models import MeshAsset
-from utils.azure_key_manager import AzureKeyManager
-import requests
 import logging
-import json
-import os
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db import DatabaseError
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s") 
@@ -34,7 +28,7 @@ class AssetListView(LoginRequiredMixin, View):
     def get(self, request):
         try:
             # 사용자의 MeshModel에 해당하는 MeshAsset 가져오기
-            mesh_models = MeshModel.objects.filter(user=request.user)
+            mesh_models = MeshModel.objects.filter(user=request.user).order_by('-created_at')
             mesh_assets = []
             
             for mesh_model in mesh_models:
