@@ -55,6 +55,16 @@ class AssetListView(LoginRequiredMixin, View):
                     fbx_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/tasks/{job_id}/models/model.fbx"
                     asset.fbx_url = fbx_url
                     
+                    # 텍스처 URL 생성 (base_color_path)
+                    # 텍스처가 없을 수 있으므로 base_color_path가 없는 경우를 처리
+                    if mesh_model.base_color_path:
+                        texture_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/tasks/{job_id}/textures/base_color.png"
+                        asset.texture_url = texture_url
+                        asset.has_texture = True
+                    else:
+                        asset.texture_url = ""
+                        asset.has_texture = False
+                    
                     asset.save()
                 except Exception as e:
                     logger.error(f"Error updating URLs for {asset}: {e}") # 썸네일과 FBX URL 업데이트 오류 로깅
@@ -65,7 +75,7 @@ class AssetListView(LoginRequiredMixin, View):
                 mesh_assets = None
             
             page = request.GET.get("page", 1) # 페이지 번호 가져오기
-            paginator = Paginator(mesh_assets, 6) # 페이지당 6개의 에셋으로 페이지네이터 생성
+            paginator = Paginator(mesh_assets, 5) # 페이지당 6개의 에셋으로 페이지네이터 생성
             
             try:
                 assets = paginator.get_page(page)

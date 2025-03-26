@@ -39,6 +39,8 @@ class MeshAsset(models.Model):
     prompt = models.TextField(blank=True)  # 프롬프트 저장
     thumbnail_url = models.URLField(blank=True)
     fbx_url = models.URLField(blank=True)
+    texture_url = models.URLField(blank=True, null=True)  # 텍스처 URL 추가
+    has_texture = models.BooleanField(default=False)  # 텍스처 존재 여부
     
     # URL 마지막 업데이트 시간
     last_url_update = models.DateTimeField(null=True)

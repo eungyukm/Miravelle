@@ -67,6 +67,13 @@
                                         <i class="bi bi-download"></i> FBX Download
                                     </a>
                                 </li>
+                                {% if asset.has_texture %}
+                                <li>
+                                    <a class="dropdown-item" href="{{ asset.texture_url }}" download>
+                                        <i class="bi bi-file-earmark-image"></i> Texture Download
+                                    </a>
+                                </li>
+                                {% endif %}
                                 <li>
                                     <a class="dropdown-item" href="#" onclick="publishToCommunity('{{ asset.id }}'); return false;">
                                         <i class="bi bi-share"></i> Community Publish
