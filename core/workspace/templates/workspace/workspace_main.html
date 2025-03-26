@@ -137,7 +137,7 @@
 
         .progress-bar {
             height: 100%;
-            background-color: #007bff;
+            background-color:rgb(0, 0, 0);
             width: 0;
             text-align: center;
             line-height: 24px;
@@ -173,7 +173,7 @@
                 {% csrf_token %}
                 <div class="mb-2">
                     <label for="prompt" class="form-label">Prompt</label>
-                    <textarea id="prompt" name="prompt" class="form-control" rows="10" required></textarea>
+                    <textarea id="prompt" name="prompt" class="form-control" rows="8" required></textarea>
                 </div>
 
                 <div class="mb-2">
@@ -198,6 +198,7 @@
                 <!-- 프롬프트 향상 버튼 추가 -->
                 <div class="mb-3">
                     <button type="button" id="enhancePromptBtn" class="btn btn-secondary w-100">EnhancePrompt</button>
+                    <p style="font-size: 13px; color: gray; font-family:sans-serif;" align="center">▲ This will improve your prompt.</p>
                 </div>
 
                 <button type="submit" id="generateBtn" class="btn btn-dark w-100">Generate Model</button>
