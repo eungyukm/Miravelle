@@ -10,9 +10,9 @@
                 <button class="btn-custom w-100" onclick="location.href='/workspace/'">
                     Create to text ✏️ <i class="fas fa-file"></i>
                 </button>
-                <button class="btn-custom w-100">
+                {% comment %} <button class="btn-custom w-100">
                     Create to image 📷 <i class="fas fa-image"></i>
-                </button>
+                </button> {% endcomment %}
                 <button class="btn-custom w-100" onclick="location.href='{% url 'prompts:generate-prompt-api' %}'">
                     Create to 3D Model Prompt 🤖
                 </button>
