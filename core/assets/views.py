@@ -84,10 +84,12 @@ class AssetListView(LoginRequiredMixin, View):
             
         except DatabaseError as db_err: # 데이터베이스 오류 발생 시
             logger.error(f"Database error occurred: {db_err}")
-            assets = None
+            assets = []
+            is_paginated = False
         except Exception as e: # 기타 예외 발생 시
             logger.error(f"Unexpected error occurred: {e}")
-            assets = None
+            assets = []
+            is_paginated = False
 
         context = {
             "assets": assets, # 페이지네이션 적용된 에셋 목록
