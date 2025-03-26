@@ -43,14 +43,6 @@ Meshy AI 기반 3D 생성 플랫폼
 5. 생성된 3D 모델을 데이터베이스에 저장하고 파일 서버에 업로드
 6. 사용자는 3D 뷰어를 통해 모델 확인 후 다운로드 가능
 
-## API 엔드포인트
-- `POST /api/auth/register/` : 사용자 회원가입
-- `POST /api/auth/login/` : 로그인 및 JWT 발급
-- `GET /api/auth/profile/` : 사용자 정보 조회
-- `POST /api/models/create/` : Meshy AI API를 호출하여 모델 생성
-- `GET /api/models/{id}/` : 생성된 모델 조회
-- `DELETE /api/models/{id}/` : 모델 삭제
-
 ## 설치 및 실행 방법
 ```bash
 git clone https://github.com/your-repo/meshy-ai-3d-platform.git
