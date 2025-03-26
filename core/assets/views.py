@@ -75,7 +75,7 @@ class AssetListView(LoginRequiredMixin, View):
                 mesh_assets = None
             
             page = request.GET.get("page", 1) # 페이지 번호 가져오기
-            paginator = Paginator(mesh_assets, 5) # 페이지당 6개의 에셋으로 페이지네이터 생성
+            paginator = Paginator(mesh_assets, 6) # 페이지당 6개의 에셋으로 페이지네이터 생성
             
             try:
                 assets = paginator.get_page(page)
