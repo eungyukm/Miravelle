@@ -29,6 +29,10 @@ def login(request):
             user = form.get_user()
             # Log the user in
             auth_login(request, user)   # 로그인 하기
+
+            if user is not None:
+                # 사용자 인증 성공 시, 세션에 사용자 아이디 저장
+                request.session['user_id'] = user.id
             
             # 'next' 파라미터를 안전하게 처리
             next_url = request.GET.get('next')
