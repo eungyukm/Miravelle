@@ -59,6 +59,18 @@ python manage.py runserver
 ### **ThreeNest**    
 [GitHub Repository](https://github.com/eungyukm/ThreeNest)    
 
+### **VisualNIMA**
+[GitHub Repository](https://github.com/eungyukm/VisualNIMA.git)
+
+### **image-quality-nima DataSet**
+[Hugging Face](https://huggingface.co/datasets/eungyukm/image-quality-nima)
+
+### **image-manual-label DataSet**
+[Hugging Face](https://huggingface.co/datasets/eungyukm/image-manual-label)
+
+### **nima_finetuned Model**
+[Hugging Face](https://huggingface.co/eungyukm/nima_finetuned)
+
 ## 기여 방법
 기여를 원하시면 이슈를 생성하고 PR을 제출해 주세요. 
 
