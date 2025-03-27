@@ -191,7 +191,7 @@ function publishToCommunity(assetId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('성공적으로 커뮤니티에 게시되었습니다!');
+                alert(data.message || '커뮤니티에 게시되었습니다!');
             } else {
                 alert('게시 중 오류가 발생했습니다: ' + data.error);
             }
