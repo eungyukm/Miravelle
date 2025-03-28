@@ -54,22 +54,35 @@ python manage.py runserver
 
 ## 연관 프로젝트
 ### **Miravelle-FastAPI**    
+- 해당 프로젝트는 Miravelle의 온프레미스 환경 프로젝트입니다.
 [GitHub Repository](https://github.com/eungyukm/Miravelle-FastAPI)     
 
 ### **ThreeNest**    
+- 해당 프로젝트는 Three.js를 R&D한 프로젝트입니다.
 [GitHub Repository](https://github.com/eungyukm/ThreeNest)    
 
 ### **VisualNIMA**
+- 해당 프로젝트는 NIMA를 파인튜닝하는 프로젝트입니다.
 [GitHub Repository](https://github.com/eungyukm/VisualNIMA.git)
 
 ### **image-quality-nima DataSet**
+- 해당 데이터셋은 NIMA로 평가된 3000여장의 데이터 셋입니다.
 [Hugging Face](https://huggingface.co/datasets/eungyukm/image-quality-nima)
 
 ### **image-manual-label DataSet**
+- 해당 데이터셋은 직접 1~10점까지 이미지를 평가한 데이터 입니다.
 [Hugging Face](https://huggingface.co/datasets/eungyukm/image-manual-label)
 
+## **mesy-texutred-dataset-v2**
+- 해당 데이터셋은 texture-classifier를 통해서 텍스쳐링이 된것과 안된것을 구분한 데이터셋 입니다.
+
 ### **nima_finetuned Model**
+- 해당 모델은 NIMA 모델을 파인튜닝한 모델입니다.
 [Hugging Face](https://huggingface.co/eungyukm/nima_finetuned)
+
+### **texture-classifier**
+- 해당 모델은 텍스쳐링된 모델과 텍스쳐링 되지 않은 모델 분류 모델입니다.
+[Hugging Face](https://huggingface.co/suhyon/texture-classifier)
 
 ## 기여 방법
 기여를 원하시면 이슈를 생성하고 PR을 제출해 주세요. 
