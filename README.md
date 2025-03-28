@@ -29,7 +29,7 @@ Meshy AI 기반 3D 생성 플랫폼
 ```
 사용자 → Django API → Meshy AI API → 3D 모델 생성 → 저장 및 제공
 ```
-![시스템 아키텍쳐](Docs/images/Architecture.png)
+![시스템 아키텍쳐](Docs/images/Architecture_v2.png)
 
 ## 규칙
 [코드 규칙](Docs/docs/code_convention.md)       
