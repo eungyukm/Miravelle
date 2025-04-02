@@ -192,4 +192,3 @@ class AzureBlobUploader:
         # 상태 업데이트 및 저장
         mesh_model.status = "refine-completed"
         mesh_model.save()
-        print(f"MeshModel saved: {mesh_model}")
